@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import type { Session } from '@supabase/supabase-js'
-import { Bell, BookOpen, CalendarDays, CheckCircle2, FileText, Home, Link2, LogOut, Menu, MessageSquareText, Moon, RefreshCw, Sparkles, Sun, UserRound, Users, X } from 'lucide-react'
+import { Bell, BookOpen, CalendarDays, CheckCircle2, ClipboardList, FileText, Home, Link2, LogOut, Menu, MessageSquareText, Moon, RefreshCw, Sparkles, Sun, UserRound, Users, X } from 'lucide-react'
 import { supabase, isSupabaseConfigured, loginToEmail } from './lib/supabase'
 import * as api from './lib/api'
 import type { Meeting, Profile, ViewName } from './types'
@@ -24,10 +24,30 @@ export default function App(){
   const me=data.profiles.find((profile)=>profile.id===session?.user.id)??null
   useEffect(()=>{document.documentElement.dataset.theme=theme;localStorage.setItem('korus-theme',theme)},[theme])
   useEffect(()=>{if(!mobileMenuOpen)return;const close=(event:KeyboardEvent)=>{if(event.key==='Escape')setMobileMenuOpen(false)};document.body.classList.add('mobile-menu-visible');window.addEventListener('keydown',close);return()=>{document.body.classList.remove('mobile-menu-visible');window.removeEventListener('keydown',close)}},[mobileMenuOpen])
-  const refresh=useCallback(async()=>{if(!session)return;try{setData(await api.loadWorkspace());setError('')}catch(cause){setError(cause instanceof Error?cause.message:'Не удалось загрузить данные')}finally{setLoadedFor(session.user.id);setLoading(false)}},[session])
+  const refreshing=useRef(false);const refreshQueued=useRef(false)
+  const refresh=useCallback(async()=>{
+    if(!session)return
+    if(refreshing.current){refreshQueued.current=true;return}
+    refreshing.current=true
+    try{
+      do{
+        refreshQueued.current=false
+        setData(await api.loadWorkspace());setError('')
+      }while(refreshQueued.current)
+    }catch(cause){setError(cause instanceof Error?cause.message:'Не удалось загрузить данные')}
+    finally{refreshing.current=false;setLoadedFor(session.user.id);setLoading(false)}
+  },[session])
   useEffect(()=>{if(!supabase){setLoading(false);return}void supabase.auth.getSession().then(({data:{session:next}})=>{setSession(next);if(!next)setLoading(false)});const{data:{subscription}}=supabase.auth.onAuthStateChange((_event,next)=>{if(next)setLoading(true);setSession(next)});return()=>subscription.unsubscribe()},[])
   useEffect(()=>{if(session)void refresh();else{setData(emptyData);setLoadedFor(null)}},[session,refresh])
-  useEffect(()=>{if(!supabase||!session)return;const channel=supabase.channel(`korus-${session.user.id}`).on('postgres_changes',{event:'*',schema:'public'},()=>void refresh()).subscribe();return()=>{void supabase?.removeChannel(channel)}},[session,refresh])
+  useEffect(()=>{
+    if(!supabase||!session)return
+    let debounce:ReturnType<typeof setTimeout>|null=null
+    const channel=supabase.channel(`korus-${session.user.id}`).on('postgres_changes',{event:'*',schema:'public'},()=>{
+      if(debounce)clearTimeout(debounce)
+      debounce=setTimeout(()=>void refresh(),400)
+    }).subscribe()
+    return()=>{if(debounce)clearTimeout(debounce);void supabase?.removeChannel(channel)}
+  },[session,refresh])
   const act=async(action:()=>Promise<void>,message='Сохранено')=>{try{await action();await refresh();if(message)setToast(message)}catch(cause){setToast(cause instanceof Error?cause.message:'Произошла ошибка')}finally{setTimeout(()=>setToast(''),3500)}}
   const login=async(login:string,password:string)=>{if(!supabase)return;setLoginBusy(true);setError('');const{error:authError}=await supabase.auth.signInWithPassword({email:loginToEmail(login),password});if(authError)setError('Неверный логин или пароль');setLoginBusy(false)}
   const logout=async()=>{await supabase?.auth.signOut();setView('home');setSelectedEmployee(null);setProfileOpen(false)}
@@ -40,7 +60,7 @@ export default function App(){
   const isManager=data.profiles.some((profile)=>profile.manager_id===me.id);const unread=data.notifications.filter((item)=>!item.is_read).length
   const chatUnread=data.chats.reduce((sum,chat)=>sum+data.messages.filter((message)=>message.chat_id===chat.id&&message.author_id!==me.id&&(!chat.last_read_at?.[me.id]||message.created_at>chat.last_read_at[me.id]!)).length,0)
   const nav:Array<{id:ViewName;label:string;icon:typeof Home;show:boolean;count?:number}>=[
-    {id:'home',label:'Главная',icon:Home,show:true},{id:'calendar',label:'Календарь',icon:CalendarDays,show:true},{id:'ipr',label:'Мой ИПР',icon:BookOpen,show:true},{id:'team',label:'Моя команда',icon:Users,show:isManager},{id:'people',label:'Сотрудники',icon:UserRound,show:me.is_hr},{id:'surveys',label:'Опросы',icon:MessageSquareText,show:true,count:data.assignments.filter((a)=>a.respondent_id===me.id&&!a.completed_at).length},{id:'chats',label:'Чаты',icon:MessageSquareText,show:true,count:chatUnread},{id:'documents',label:'Документы',icon:FileText,show:true},{id:'links',label:'Полезные ссылки',icon:Link2,show:true},
+    {id:'home',label:'Главная',icon:Home,show:true},{id:'calendar',label:'Календарь',icon:CalendarDays,show:true},{id:'ipr',label:'Мой ИПР',icon:BookOpen,show:true},{id:'team',label:'Моя команда',icon:Users,show:isManager},{id:'people',label:'Сотрудники',icon:UserRound,show:me.is_hr},{id:'surveys',label:'Опросы',icon:ClipboardList,show:true,count:data.assignments.filter((a)=>a.respondent_id===me.id&&!a.completed_at).length},{id:'chats',label:'Чаты',icon:MessageSquareText,show:true,count:chatUnread},{id:'documents',label:'Документы',icon:FileText,show:true},{id:'links',label:'Полезные ссылки',icon:Link2,show:true},
   ]
   const ownMeetings=data.meetings.filter((meeting)=>meeting.participant_ids?.includes(me.id)||meeting.employee_id===me.id||meeting.organizer_id===me.id)
   const ipr=(employee:Profile,readOnly=false)=> <IprView employee={employee} me={me} tasks={data.tasks.filter((task)=>task.employee_id===employee.id)} readOnly={readOnly} onAdd={(values)=>act(()=>api.addTask(employee.id,me.id,values,employee.id!==me.id),'Задача сохранена')} onDecide={(task,status,reason)=>act(()=>api.decideTask(task.id,status,me.id,reason),'Решение сохранено')} onDelete={(task)=>act(()=>api.deleteTask(task.id),'Задача удалена')} onComplete={(task,completed)=>act(()=>api.setTaskCompleted(task.id,completed),'Прогресс обновлён')}/>
