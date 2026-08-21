@@ -73,3 +73,63 @@ html,body,#root{height:100%;overflow:hidden}.app-backdrop{height:100vh;min-heigh
 .upload-zone{cursor:pointer;position:relative;display:flex;flex-direction:column;gap:8px;transition:border-color .2s,background .2s}.upload-zone:hover,.upload-zone:focus-visible,.upload-zone.has-file{border-color:var(--purple);background:var(--purple-soft);outline:none}.upload-zone input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}.upload-zone .button{margin-top:5px}.upload-zone strong{font-size:12px}.upload-zone span{font-size:9px}.button:disabled{cursor:not-allowed;opacity:.5}
 .profile-bottom{justify-content:flex-end}
 .sidebar nav{min-height:0;overflow-y:auto;overflow-x:hidden}.sidebar-logout{margin-top:auto;width:100%;min-height:48px;border:0;border-top:1px solid var(--line);background:transparent;color:var(--red);padding:16px 15px 0;display:flex;align-items:center;gap:15px;text-align:left;font-size:13px;font-weight:800}.sidebar-logout:hover{color:#a93649}.sidebar-logout svg{display:block;width:22px;height:22px;min-width:22px;stroke-width:2.3}.sidebar-logout span{opacity:0;white-space:nowrap;transition:opacity .15s}.sidebar:hover .sidebar-logout span{opacity:1}@media(max-width:900px){.sidebar nav{overflow-x:auto;overflow-y:hidden}.sidebar-logout{flex:0 0 52px;width:52px;min-height:48px;margin:0;padding:12px 15px;border-top:0;border-left:1px solid var(--line)}.sidebar-logout span{display:none}}
+
+/* Complete dark-theme palette and component states. */
+[data-theme="dark"]{--ink:#f5f2f8;--muted:#b9b3c3;--line:#4a4553;--purple:#a99af8;--purple-dark:#9280ee;--purple-soft:#3b345b;--red:#f07d8e;--green:#72d1aa;--orange:#e8ad67;--surface:#2b2733;--surface-elevated:#332f3c;--surface-muted:#24212c;--surface-hover:#3a3543;background:#19171f;color:var(--ink)}
+[data-theme="dark"] .app-backdrop{background:radial-gradient(circle at 6% 4%,#3f355f 0,transparent 31%),radial-gradient(circle at 96% 6%,#523345 0,transparent 33%),linear-gradient(145deg,#17141f 0%,#211b2c 58%,#302438 100%)}
+[data-theme="dark"] .app-shell,[data-theme="dark"] .workspace{background:#201d27}
+[data-theme="dark"] .sidebar,[data-theme="dark"] .topbar,[data-theme="dark"] .card,[data-theme="dark"] .modal-card,[data-theme="dark"] .notification-drawer,[data-theme="dark"] .chat-window,[data-theme="dark"] .calendar-info-panel,[data-theme="dark"] .calendar-info-button,[data-theme="dark"] .material-card,[data-theme="dark"] .link-card,[data-theme="dark"] .template-card,[data-theme="dark"] .team-card,[data-theme="dark"] .dashboard-kpis>div,[data-theme="dark"] .welcome-stats>div,[data-theme="dark"] .chat-members{background:var(--surface);color:var(--ink);border-color:var(--line)}
+[data-theme="dark"] .topbar{background:#2b2733eb}
+[data-theme="dark"] .card,[data-theme="dark"] .modal-card,[data-theme="dark"] .notification-drawer,[data-theme="dark"] .chat-window{box-shadow:0 18px 48px #09070e40}
+[data-theme="dark"] .modal-backdrop,[data-theme="dark"] .drawer-backdrop{background:#0c0914b8}
+[data-theme="dark"] .breadcrumbs,[data-theme="dark"] .sidebar nav button,[data-theme="dark"] .back-link{color:var(--muted)}
+[data-theme="dark"] .breadcrumbs span{color:#716a79}
+[data-theme="dark"] .sidebar nav button:hover,[data-theme="dark"] .chat-list>button:hover,[data-theme="dark"] .chat-sidebar>button:hover,[data-theme="dark"] .results-layout aside>button:hover{background:var(--surface-hover);color:var(--ink)}
+[data-theme="dark"] .sidebar nav button.active,[data-theme="dark"] .chat-list>button.active,[data-theme="dark"] .chat-sidebar>button.active,[data-theme="dark"] .results-layout aside>button.active{background:var(--purple-soft);color:#c3b8ff}
+[data-theme="dark"] .sidebar-menu{background:#373149;color:#b7aaff}
+[data-theme="dark"] .sidebar-logout:hover{background:#402b34;color:#ff9aaa}
+[data-theme="dark"] .app-shell input,[data-theme="dark"] .app-shell select,[data-theme="dark"] .app-shell textarea,[data-theme="dark"] .search-box,[data-theme="dark"] .profile-trigger,[data-theme="dark"] .person-picker-list button,[data-theme="dark"] .button.secondary,[data-theme="dark"] .icon-button,[data-theme="dark"] .notification-button{background:var(--surface-elevated);color:var(--ink);border-color:var(--line)}
+[data-theme="dark"] .app-shell input::placeholder,[data-theme="dark"] .app-shell textarea::placeholder{color:#8f8899}
+[data-theme="dark"] .app-shell label{color:#d5cfdd}
+[data-theme="dark"] .button.secondary:hover,[data-theme="dark"] .icon-button:hover,[data-theme="dark"] .notification-button:hover,[data-theme="dark"] .profile-trigger:hover{background:var(--surface-hover);border-color:#665e72}
+[data-theme="dark"] .icon-button.danger{background:#482c35;color:#ff91a1}
+[data-theme="dark"] .icon-button.success{background:#244337;color:#82d9b4}
+[data-theme="dark"] .avatar,[data-theme="dark"] .chat-avatar{background:#40385f;color:#c1b5ff}
+[data-theme="dark"] .badge-gray{background:#403b48;color:#d0cad7}
+[data-theme="dark"] .badge-purple{background:#403762;color:#c5b9ff}
+[data-theme="dark"] .badge-green{background:#24483a;color:#8eddbb}
+[data-theme="dark"] .badge-red{background:#4c2b35;color:#ff9aaa}
+[data-theme="dark"] .badge-orange{background:#4b3826;color:#f0bd7c}
+[data-theme="dark"] .badge-blue{background:#283d52;color:#91c8f2}
+[data-theme="dark"] .segmented,[data-theme="dark"] .detail-row,[data-theme="dark"] .team-next,[data-theme="dark"] .day.outside,[data-theme="dark"] .messages,[data-theme="dark"] .theme-toggle,[data-theme="dark"] .run-progress>span,[data-theme="dark"] .ipr-progress>span{background:var(--surface-muted);color:var(--muted)}
+[data-theme="dark"] .segmented button{color:var(--muted)}
+[data-theme="dark"] .segmented button:hover{background:var(--surface-hover);color:var(--ink)}
+[data-theme="dark"] .meeting-employee,[data-theme="dark"] .meeting-official{background:#3b3460;color:#c8beff}
+[data-theme="dark"] .meeting-hr,[data-theme="dark"] .meeting-personal{background:#23483d;color:#91dec1}
+[data-theme="dark"] .meeting-manager{background:#293f58;color:#98cbf2}
+[data-theme="dark"] .meeting-pending{background:#4a3c23;color:#f0ca72}
+[data-theme="dark"] .approval-strip{background:#493823;color:#f1c986}
+[data-theme="dark"] .approval-strip span{color:#d8b579}
+[data-theme="dark"] .pending-surveys{background:linear-gradient(135deg,#332e43,#2b2733);border-color:#574e73}
+[data-theme="dark"] .add-line,[data-theme="dark"] .upload-zone{background:#302b42;border-color:#665c8e;color:#b9adff}
+[data-theme="dark"] .task-card.completed{background:#24362f;border-left-color:#62c49e}
+[data-theme="dark"] .clickable-row:hover,[data-theme="dark"] .employee-list>button:hover,[data-theme="dark"] .demo-account-list button:hover{background:var(--surface-hover);color:var(--ink)}
+[data-theme="dark"] .employee-list>button.active,[data-theme="dark"] .person-picker-list button.selected{background:var(--purple-soft);border-color:#675d91}
+[data-theme="dark"] .info-box{background:#38324f;color:#c8c0ec}
+[data-theme="dark"] .warning-box{background:#493624;color:#f1c58b}
+[data-theme="dark"] .chat-top{background:#282338}
+[data-theme="dark"] .chat-compose,[data-theme="dark"] .conversation-head,[data-theme="dark"] .chat-conversation>header{background:var(--surface);border-color:var(--line)}
+[data-theme="dark"] .message{background:var(--surface-elevated);color:var(--ink);border-color:#4b4555}
+[data-theme="dark"] .message.mine{background:#403860;border-color:#685e93}
+[data-theme="dark"] .message time{color:#a49dac}
+[data-theme="dark"] .notification{background:#2d2935;border-color:var(--line);color:var(--ink)}
+[data-theme="dark"] .notification.unread{background:#37314d;border-color:#685d91;box-shadow:inset 3px 0 #a99af8}
+[data-theme="dark"] .notification:hover{background:var(--surface-hover);border-color:#756a91}
+[data-theme="dark"] .notification-icon,[data-theme="dark"] .notification-detail-icon{background:#40385f;color:#c2b6ff}
+[data-theme="dark"] .notification p{color:#d6d0de}
+[data-theme="dark"] .notification small,[data-theme="dark"] .notification-detail time{color:#aaa3b3}
+[data-theme="dark"] .notification .icon-button{background:transparent;color:#aaa3b3}
+[data-theme="dark"] .notification .icon-button:hover{background:#493640;color:#ff9aaa}
+[data-theme="dark"] .task-status-complete{background:#25483b;color:#91dfbd}
+[data-theme="dark"] .form-error{background:#4b2933;color:#ff9aaa}
+[data-theme="dark"] *{scrollbar-color:#5c5566 transparent}
