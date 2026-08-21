@@ -133,3 +133,4 @@ html,body,#root{height:100%;overflow:hidden}.app-backdrop{height:100vh;min-heigh
 [data-theme="dark"] .task-status-complete{background:#25483b;color:#91dfbd}
 [data-theme="dark"] .form-error{background:#4b2933;color:#ff9aaa}
 [data-theme="dark"] *{scrollbar-color:#5c5566 transparent}
+.sidebar button.brand{width:100%;border:0;background:transparent;color:var(--ink);text-align:left;cursor:pointer;border-radius:16px;transition:background .15s ease,box-shadow .15s ease}.sidebar button.brand:hover{background:var(--purple-soft)}.sidebar button.brand:focus-visible{outline:2px solid var(--purple);outline-offset:3px}[data-theme="dark"] .sidebar button.brand:hover{background:#3b3450}
