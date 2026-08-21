@@ -70,7 +70,11 @@ export default function App(){
     <main className="workspace">
       <header className="topbar">
         <div className="topbar-start"><button className="mobile-menu-trigger" onClick={()=>setMobileMenuOpen(true)} aria-label="Открыть меню" aria-expanded={mobileMenuOpen}><Menu/></button><div className="breadcrumbs">КОРУС <span>/</span> {nav.find((item)=>item.id===view)?.label}</div></div>
-        <div className="top-actions"><button className="icon-button theme-quick-toggle" title={theme==='light'?'Включить тёмную тему':'Включить светлую тему'} aria-label={theme==='light'?'Включить тёмную тему':'Включить светлую тему'} onClick={()=>setTheme(theme==='light'?'dark':'light')}>{theme==='light'?<Moon/>:<Sun/>}</button><button className="notification-button" onClick={()=>setNotificationsOpen(true)} aria-label="Уведомления"><Bell/>{unread>0&&<b>{unread}</b>}</button><button className="profile-trigger" onClick={()=>setProfileOpen(true)} aria-label="Открыть профиль"><Avatar profile={me} size="sm"/><span>Мой профиль</span></button></div>
+        <div className="top-actions">
+          <button className="icon-button theme-quick-toggle" title={theme==='light'?'Включить тёмную тему':'Включить светлую тему'} aria-label={theme==='light'?'Включить тёмную тему':'Включить светлую тему'} onClick={()=>setTheme(theme==='light'?'dark':'light')}>{theme==='light'?<Moon/>:<Sun/>}</button>
+          <button className="notification-button" onClick={()=>setNotificationsOpen(true)} aria-label="Уведомления"><Bell/>{unread>0&&<b>{unread}</b>}</button>
+          <button className="profile-trigger" onClick={()=>setProfileOpen(true)} aria-label="Открыть профиль" title="Мой профиль"><Avatar profile={me} size="sm"/><UserRound className="profile-trigger-icon"/><span>Мой профиль</span></button>
+        </div>
       </header>
       <div className="page-content">{error&&<div className="form-error">{error}</div>}{page()}</div>
     </main>
