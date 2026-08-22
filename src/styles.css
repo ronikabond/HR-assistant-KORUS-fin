@@ -486,6 +486,7 @@ html,body,#root{height:100%;overflow:hidden}.app-backdrop{height:100vh;min-heigh
 .employee-form-modal .person-picker-list small{font-size:11px;line-height:1.35;margin-top:3px}
 .employee-form-modal .person-picker-list i{font-size:16px;font-weight:700}
 .employee-form-modal .picker-clear{font-size:13px;padding-top:9px}
+.employee-form-modal .employee-permission-toggles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px}
 .employee-form-modal .toggle-field{min-height:74px;padding:14px 16px;gap:12px;border-radius:12px}
 .employee-form-modal .toggle-field input{width:20px;height:20px;flex:0 0 auto}
 .employee-form-modal .toggle-field b{font-size:15px}
@@ -536,6 +537,7 @@ html,body,#root{height:100%;overflow:hidden}.app-backdrop{height:100vh;min-heigh
   .employee-form-modal,.meeting-create-modal{width:100%;padding:24px 17px calc(20px + env(safe-area-inset-bottom))}
   .employee-form-modal .modal-heading h2,.meeting-create-modal .modal-heading h2{font-size:23px}
   .employee-form-modal .form-grid{gap:16px}
+  .employee-form-modal .employee-permission-toggles{grid-template-columns:1fr;gap:12px}
   .employee-form-modal .profile-picker .person-picker-list,.meeting-create-modal .profile-picker .person-picker-list{max-height:260px}
   .meeting-modal{width:100%;padding:24px 17px calc(20px + env(safe-area-inset-bottom))}
   .meeting-modal .modal-heading{margin-bottom:20px}
