@@ -3,83 +3,28 @@ import { useMemo, useState, type ComponentType } from 'react'
 import type { Profile, ResourceLink } from '../types'
 import { AccessEditor, type ShareDraft } from '../components/AccessEditor'
 import { EmptyState, Modal } from '../components/UI'
+import { curatedLinks, linkCategories, type CuratedLink, type LinkCategory } from '../data/curatedLinks'
 
-const categories = ['Общее', 'Шаблоны и примеры', 'Пресейл', 'Консалтинг', 'Добавленные'] as const
-type LinkCategory = typeof categories[number]
-
-type CatalogLink = {
-  key: string
-  title: string
-  url: string
-  description: string
-  category: LinkCategory
+type CatalogLink = CuratedLink & {
   resource?: ResourceLink
 }
-
-const curatedLinks: CatalogLink[] = [
-  {
-    key: 'org-structure',
-    category: 'Общее',
-    title: 'Организационная структура департамента CRM',
-    description: 'Схема команд, ролей и зон ответственности департамента в ЦУП.',
-    url: 'https://mcc.korusconsulting.ru/departments/crm/Lists/MgmtDocs/%D0%9E%D1%80%D0%B3%D0%B0%D0%BD%D0%B8%D0%B7%D0%B0%D1%86%D0%B8%D0%BE%D0%BD%D0%BD%D0%B0%D1%8F%20%D1%81%D1%82%D1%80%D1%83%D0%BA%D1%82%D1%83%D1%80%D0%B0%20%D0%B4%D0%B5%D0%BF%D0%B0%D1%80%D1%82%D0%B0/%D0%9E%D1%80%D0%B3%D1%81%D1%82%D1%80%D1%83%D0%BA%D1%82%D1%83%D1%80%D0%B0%202026.pptx?d=w33cd8403af254d20a735aa1dc8f6ee28',
-  },
-  {
-    key: 'department-strategy',
-    category: 'Общее',
-    title: 'Стратегия департамента 2026–2029',
-    description: 'Стратегические ориентиры и приоритеты развития департамента CRM.',
-    url: 'https://mcc.korusconsulting.ru/departments/crm/Lists/MgmtDocs/%D0%A1%D1%82%D1%80%D0%B0%D1%82%D0%B5%D0%B3%D0%B8%D1%8F%20%D0%B4%D0%B5%D0%BF%D0%B0%D1%80%D1%82%D0%B0%D0%BC%D0%B5%D0%BD%D1%82%D0%B0/%D0%A1%D1%82%D1%80%D0%B0%D1%82%D0%B5%D0%B3%D0%B8%D1%8F_%D0%BE%D1%82%2018.05.2026.pptx?d=wd6e6972f7bc54236978d19cd8cbcc91f',
-  },
-  {
-    key: 'document-templates',
-    category: 'Шаблоны и примеры',
-    title: 'Все шаблоны и примеры документов',
-    description: 'Единая библиотека шаблонов и примеров рабочих документов.',
-    url: 'https://mcc.korusconsulting.ru/departments/crm/Lists/TemplateDocs/Forms/AllItems.aspx',
-  },
-  {
-    key: 'preproject-examples',
-    category: 'Шаблоны и примеры',
-    title: 'Примеры предпроектного обследования',
-    description: 'Подборка документов предпроектного обследования от коллег из ERP.',
-    url: 'https://mcc.korusconsulting.ru/departments/crm/Lists/TemplateDocs/Forms/AllItems.aspx?RootFolder=%2Fdepartments%2Fcrm%2FLists%2FTemplateDocs%2F01%2E%20%D0%9F%D1%80%D0%B5%D0%B4%D0%BF%D1%80%D0%BE%D0%B5%D0%BA%D1%82%D0%BD%D1%8B%D0%B5%20%D0%B4%D0%BE%D0%BA%D1%83%D0%BC%D0%B5%D0%BD%D1%82%D1%8B%2F%D0%9F%D1%80%D0%B5%D0%B4%D0%BF%D1%80%D0%BE%D0%B5%D0%BA%D1%82%D0%BD%D0%BE%D0%B5%20%D0%BE%D0%B1%D1%81%D0%BB%D0%B5%D0%B4%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D0%B5%2F%D0%9F%D1%80%D0%B8%D0%BC%D0%B5%D1%80%D1%8B%20%D0%BE%D1%82%20ERP&FolderCTID=0x01200017FBAC0381C49B4C94E9078439BB8B44&View=%7BF13C7CF6%2D1DF7%2D457E%2DBAD4%2D73917E6CE52C%7D',
-  },
-  {
-    key: 'presale-regulation',
-    category: 'Пресейл',
-    title: 'Регламент по привлечению к пресейлу',
-    description: 'Порядок привлечения сотрудников департамента к продажам и пресейлу.',
-    url: 'https://mcc.korusconsulting.ru/departments/crm/Lists/RegulationDocs/00.%20%D0%9F%D1%80%D0%B5%D1%81%D0%B5%D0%B9%D0%BB',
-  },
-  {
-    key: 'project-estimation',
-    category: 'Пресейл',
-    title: 'Оценка проекта',
-    description: 'Шаблоны и пример оценки проекта для подготовки предложения.',
-    url: 'https://mcc.korusconsulting.ru/departments/crm/Lists/TemplateDocs/01.%20%D0%9F%D1%80%D0%B5%D0%B4%D0%BF%D1%80%D0%BE%D0%B5%D0%BA%D1%82%D0%BD%D1%8B%D0%B5%20%D0%B4%D0%BE%D0%BA%D1%83%D0%BC%D0%B5%D0%BD%D1%82%D1%8B/%D0%9E%D1%86%D0%B5%D0%BD%D0%BA%D0%B0%20%D0%BF%D1%80%D0%BE%D0%B5%D0%BA%D1%82%D0%B0',
-  },
-  {
-    key: 'dynamics-setup',
-    category: 'Консалтинг',
-    title: 'Регламент по настройке Dynamics 365',
-    description: 'Рабочий регламент настройки решений на базе Dynamics 365.',
-    url: 'https://mcc.korusconsulting.ru/departments/crm/Lists/RegulationDocs/Forms/AllItems.aspx?RootFolder=%2Fdepartments%2Fcrm%2FLists%2FRegulationDocs%2F02%2E%20%D0%9A%D0%BE%D0%BD%D1%81%D0%B0%D0%BB%D1%82%D0%B8%D0%BD%D0%B3%2FDynamics%20CRM&FolderCTID=0x0120000169478BF95A5B4B9DE1758FC8E595D5&View=%7B0CCCB99B%2DCD86%2D42E7%2D87C4%2DBAB1024061D9%7D',
-  },
-  {
-    key: 'consultant-competencies',
-    category: 'Консалтинг',
-    title: 'Матрица компетенций консультанта',
-    description: 'Матрица компетенций консультантов по Microsoft Dynamics CRM.',
-    url: 'https://mcc.korusconsulting.ru/departments/crm/Lists/RegulationDocs/02.%20%D0%9A%D0%BE%D0%BD%D1%81%D0%B0%D0%BB%D1%8C%D1%82%D0%B8%D0%BD%D0%B3/%D0%9C%D0%B0%D1%82%D1%80%D0%B8%D1%86%D0%B0%20%D0%BA%D0%BE%D0%BC%D0%BF%D0%B5%D1%82%D0%B5%D0%BD%D1%86%D0%B8%D0%B9%20%D0%9A%D0%BE%D0%BD%D1%81%D1%83%D0%BB%D1%8C%D1%82%D0%B0%D0%BD%D1%82%D0%B0%20(Dynamics%20CRM)_v2.xlsx?d=w16e89b0e61dc41a7978b395552d52830',
-  },
-]
 
 const categoryIcons: Record<LinkCategory, ComponentType> = {
   'Общее': Building2,
   'Шаблоны и примеры': FileStack,
   'Пресейл': Sparkles,
   'Консалтинг': Settings2,
+  'Разработка': Settings2,
+  'Тех. поддержка': Settings2,
+  'Управление проектами': FileStack,
+  'Продажи': Sparkles,
+  'Собственные решения': BookmarkPlus,
+  'Маркетинг': Globe2,
+  'Записи и презентации': FileStack,
+  'Таймшиты': BookmarkPlus,
+  'Вопросы и ответы': Globe2,
+  'Ребрендинг': Sparkles,
+  'База знаний': BookmarkPlus,
   'Добавленные': BookmarkPlus,
 }
 
@@ -88,11 +33,22 @@ const categoryTones: Record<LinkCategory, string> = {
   'Шаблоны и примеры': 'blue',
   'Пресейл': 'orange',
   'Консалтинг': 'green',
+  'Разработка': 'violet',
+  'Тех. поддержка': 'blue',
+  'Управление проектами': 'orange',
+  'Продажи': 'green',
+  'Собственные решения': 'rose',
+  'Маркетинг': 'violet',
+  'Записи и презентации': 'blue',
+  'Таймшиты': 'orange',
+  'Вопросы и ответы': 'green',
+  'Ребрендинг': 'rose',
+  'База знаний': 'violet',
   'Добавленные': 'rose',
 }
 
 function linkHost(url: string) {
-  try { return new URL(url).hostname.replace(/^www\./, '') }
+  try { const parsed=new URL(url);return parsed.protocol==='file:'?'Внутренняя сеть · VPN':parsed.hostname.replace(/^www\./, '') }
   catch { return 'Корпоративный ресурс' }
 }
 
@@ -106,7 +62,7 @@ export function LinksPage({me,profiles,items,onCreate,onUpdate,onHide,onDelete}:
     ...curatedLinks,
     ...items.map((item)=>({key:`resource-${item.id}`,title:item.title,url:item.url,description:item.description||item.url,category:'Добавленные' as const,resource:item})),
   ],[items])
-  const availableCategories=useMemo(()=>categories.filter((name)=>catalog.some((item)=>item.category===name)),[catalog])
+  const availableCategories=useMemo(()=>linkCategories.filter((name)=>catalog.some((item)=>item.category===name)),[catalog])
   const visibleItems=useMemo(()=>{const normalized=query.trim().toLocaleLowerCase('ru-RU');return catalog.filter((item)=>(category==='Все'||item.category===category)&&(!normalized||`${item.title} ${item.description} ${item.category}`.toLocaleLowerCase('ru-RU').includes(normalized)))},[catalog,category,query])
 
   return <>
