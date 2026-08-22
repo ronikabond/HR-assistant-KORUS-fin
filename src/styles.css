@@ -395,7 +395,7 @@ html,body,#root{height:100%;overflow:hidden}.app-backdrop{height:100vh;min-heigh
   background:#fff;
   box-shadow:0 24px 70px #2d254319;
 }
-.login-theme-toggle{position:fixed;z-index:3;top:18px;right:18px;width:40px;height:40px;border:1px solid #ffffff80;border-radius:12px;background:#ffffffd9;color:#5140bd;display:grid;place-items:center;box-shadow:0 8px 24px #2d254329;backdrop-filter:blur(10px);transition:transform .15s ease,background .15s ease,border-color .15s ease}
+.login-theme-toggle{position:absolute;z-index:2;top:22px;right:22px;width:40px;height:40px;border:1px solid #ddd8e8;border-radius:12px;background:#f7f5fc;color:#5140bd;display:grid;place-items:center;box-shadow:0 6px 18px #2d254318;transition:transform .15s ease,background .15s ease,border-color .15s ease}
 .login-theme-toggle:hover{transform:translateY(-1px);background:#fff;border-color:#fff}
 .login-theme-toggle:focus-visible{outline:3px solid #ffffff80;outline-offset:3px}
 .login-theme-toggle svg{width:18px;height:18px}
@@ -477,7 +477,8 @@ html,body,#root{height:100%;overflow:hidden}.app-backdrop{height:100vh;min-heigh
 @media(max-width:680px){
   .login-page{place-items:start center;padding:16px 12px}
   .login-shell{padding:24px 16px;border-radius:20px}
-  .login-brand{margin-bottom:24px}
+  .login-theme-toggle{top:14px;right:14px}
+  .login-brand{justify-content:flex-start;margin-bottom:24px;padding-right:48px}
   .login-intro{margin-bottom:24px}
   .login-intro h1{font-size:30px}
   .login-page .demo-account-list{grid-template-columns:1fr;max-height:none}
