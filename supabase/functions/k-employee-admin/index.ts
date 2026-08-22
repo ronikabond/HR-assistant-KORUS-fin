@@ -53,8 +53,18 @@ async function insertMeeting(admin: any, employeeId: string, organizerId: string
   if (participantsError) throw participantsError
 }
 
+// Платформа иногда выполняет запрос дважды параллельно на холодном старте (гонка изолятов) —
+// защищаемся от задвоения графика встреч простой проверкой «уже создано?» перед вставкой.
+// deno-lint-ignore no-explicit-any
+async function scheduleAlreadyExists(admin: any, employeeId: string, kind: string) {
+  const { count } = await admin.from('k_meetings').select('id', { count: 'exact', head: true })
+    .eq('employee_id', employeeId).eq('meeting_type', kind)
+  return (count ?? 0) > 0
+}
+
 // deno-lint-ignore no-explicit-any
 async function createOnboardingMeetings(admin: any, employeeId: string, hrId: string, managerId: string | null, hiredOn: string) {
+  if (await scheduleAlreadyExists(admin, employeeId, 'first_day')) return
   for (const stage of ONBOARDING_SCHEDULE) {
     const date = new Date(`${hiredOn}T11:00:00Z`); date.setUTCDate(date.getUTCDate() + stage.offsetDays)
     await insertMeeting(admin, employeeId, hrId, [employeeId, hrId, stage.withManager ? managerId : null], stage.title, stage.kind, date)
@@ -68,6 +78,7 @@ async function createOnboardingMeetings(admin: any, employeeId: string, hrId: st
 const DEVELOPMENT_CYCLE_YEARS = 2
 // deno-lint-ignore no-explicit-any
 async function createDevelopmentCycleMeetings(admin: any, employeeId: string, hrId: string, managerId: string | null, hiredOn: string) {
+  if (await scheduleAlreadyExists(admin, employeeId, 'ipr_checkin')) return
   const probationEnd = new Date(`${hiredOn}T11:00:00Z`); probationEnd.setUTCDate(probationEnd.getUTCDate() + 90)
   for (let half = 1; half <= DEVELOPMENT_CYCLE_YEARS * 2; half++) {
     const date = new Date(probationEnd); date.setUTCMonth(date.getUTCMonth() + half * 6)
@@ -251,6 +262,9 @@ Deno.serve(async (req) => {
     }
     return reply({ error:'Неизвестное действие' }, 400)
   } catch (error) {
-    return reply({ error:error instanceof Error ? error.message : 'Ошибка сервера' }, 500)
+    const message = error instanceof Error ? error.message
+      : (typeof error === 'object' && error && 'message' in error) ? String((error as { message: unknown }).message)
+      : 'Ошибка сервера'
+    return reply({ error: message }, 500)
   }
 })
