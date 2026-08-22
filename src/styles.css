@@ -481,3 +481,44 @@ html,body,#root{height:100%;overflow:hidden}.app-backdrop{height:100vh;min-heigh
   .meeting-modal .modal-actions{display:grid;grid-template-columns:1fr;padding-top:18px}
   .meeting-modal .modal-actions .button{width:100%;min-width:0}
 }
+
+/* Readable survey template editor and stable result statuses. */
+.survey-template-modal{width:min(980px,100%);padding:30px}
+.survey-template-modal .modal-heading{margin-bottom:24px}
+.survey-template-modal .form-stack{gap:18px}
+.survey-template-modal label{font-size:14px}
+.survey-template-modal> .form-stack>label input{min-height:48px;font-size:15px}
+.survey-template-modal> .form-stack>label textarea{min-height:112px;font-size:15px;line-height:1.5}
+.survey-template-modal .question-editor{gap:12px}
+.survey-template-modal .question-editor>div{grid-template-columns:38px minmax(0,1fr) 176px;gap:12px}
+.survey-template-modal .question-editor b{width:38px;height:38px;font-size:13px}
+.survey-template-modal .question-editor input,.survey-template-modal .question-editor select{min-height:48px;padding:12px 14px;font-size:14px;line-height:1.4}
+.survey-template-modal .add-line,.survey-template-modal>.form-stack>.primary{min-height:50px;font-size:15px}
+
+.survey-results-modal{width:min(980px,100%);padding:30px}
+.survey-results-modal .modal-heading{margin-bottom:22px}
+.survey-results-modal .results-layout{grid-template-columns:minmax(330px,360px) minmax(0,1fr);gap:24px;min-height:440px}
+.survey-results-modal .results-layout>aside{padding-right:18px}
+.survey-results-modal .results-layout h4{font-size:13px;margin-bottom:14px}
+.survey-results-modal .results-layout aside>button{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;min-height:68px;padding:12px 10px}
+.survey-results-modal .results-layout .person-line{min-width:0;gap:11px}
+.survey-results-modal .results-layout .person-line strong{font-size:13px}
+.survey-results-modal .results-layout .person-line span{font-size:11px}
+.survey-results-modal .results-layout aside>button>.badge{justify-self:end;flex:0 0 auto;font-size:12px;padding:6px 10px}
+.survey-results-modal .answer-detail h3{font-size:19px;margin-bottom:14px}
+.survey-results-modal .answer-detail>div{padding:15px 0}
+.survey-results-modal .answer-detail span{font-size:13px;line-height:1.45}
+.survey-results-modal .answer-detail strong{font-size:15px}
+
+@media(max-width:960px){
+  .survey-results-modal .results-layout{grid-template-columns:1fr;gap:18px;min-height:0}
+  .survey-results-modal .results-layout>aside{display:flex;gap:8px;overflow-x:auto;border-right:0;border-bottom:1px solid var(--line);padding:0 0 16px}
+  .survey-results-modal .results-layout>aside h4{display:none}
+  .survey-results-modal .results-layout aside>button{flex:0 0 min(300px,82vw)}
+}
+
+@media(max-width:640px){
+  .survey-template-modal,.survey-results-modal{width:100%;padding:24px 17px calc(20px + env(safe-area-inset-bottom))}
+  .survey-template-modal .question-editor>div{grid-template-columns:38px minmax(0,1fr)}
+  .survey-template-modal .question-editor>div select{grid-column:2}
+}
