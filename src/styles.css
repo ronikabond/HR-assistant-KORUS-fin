@@ -382,7 +382,7 @@ html,body,#root{height:100%;overflow:hidden}.app-backdrop{height:100vh;min-heigh
   padding:clamp(24px,5vw,64px) 20px;
   color:#242132;
   color-scheme:light;
-  background:radial-gradient(circle at 10% 10%,#e7e2ff 0,transparent 32%),radial-gradient(circle at 90% 88%,#eeeaff 0,transparent 28%),#f7f6fa;
+  background:radial-gradient(circle at 5% 5%,#fff3a8 0,transparent 27%),radial-gradient(circle at 94% 8%,#f5bfdc 0,transparent 30%),linear-gradient(140deg,#6d58dc 0%,#ba78c2 55%,#f4bd78 100%);
 }
 .login-shell{
   position:relative;
@@ -447,7 +447,7 @@ html,body,#root{height:100%;overflow:hidden}.app-backdrop{height:100vh;min-heigh
 .login-page .login-note{color:#9692a0!important}
 .login-footer{margin-top:28px;text-align:center;color:#9692a0;font-size:11px}
 
-[data-theme="dark"] .login-page{color:#242132;background:radial-gradient(circle at 10% 10%,#e7e2ff 0,transparent 32%),radial-gradient(circle at 90% 88%,#eeeaff 0,transparent 28%),#f7f6fa}
+[data-theme="dark"] .login-page{color:#242132;background:radial-gradient(circle at 5% 5%,#fff3a8 0,transparent 27%),radial-gradient(circle at 94% 8%,#f5bfdc 0,transparent 30%),linear-gradient(140deg,#6d58dc 0%,#ba78c2 55%,#f4bd78 100%)}
 [data-theme="dark"] .login-page input,[data-theme="dark"] .login-page .password-field{border-color:#dcd9e4;background:#fff;color:#242132}
 [data-theme="dark"] .login-page .demo-account-list button{border-color:#e8e6ed;background:#fff;color:#242132}
 [data-theme="dark"] .login-page .demo-account-list button:hover{border-color:#bcb4ef;background:#faf9ff;color:#242132}
