@@ -471,7 +471,8 @@ html,body,#root{height:100%;overflow:hidden}.app-backdrop{height:100vh;min-heigh
 .meeting-modal .participant-list{gap:10px 12px}
 .meeting-modal .participant-list .badge{padding:7px 11px;line-height:1.35}
 .meeting-modal .modal-actions{margin-top:0;padding-top:22px;border-top:1px solid var(--line);gap:10px;flex-wrap:wrap}
-.meeting-modal .modal-actions .button{min-width:120px;min-height:46px;flex:1 1 120px;white-space:nowrap}
+.meeting-modal .modal-actions .button{min-width:120px;min-height:54px;flex:1 1 120px;white-space:nowrap}
+.meeting-modal .modal-actions .meeting-reschedule-button{flex-direction:column;gap:1px;line-height:1.12;white-space:normal}
 
 @media(max-width:640px){
   .meeting-modal{width:100%;padding:24px 17px calc(20px + env(safe-area-inset-bottom))}
