@@ -33,6 +33,29 @@ const normalizeEmail = (login: string) => {
   return `${local}@korpus-demo.ru`
 }
 
+// Этапы адаптации по ТЗ: день 1 и неделя 1 — HR и сотрудник; 1,5 и 3 месяца — HR, руководитель и сотрудник.
+const ONBOARDING_SCHEDULE = [
+  { title: 'Первый день', kind: 'first_day', offsetDays: 0, withManager: false },
+  { title: 'Итоги первой недели', kind: 'first_week', offsetDays: 7, withManager: false },
+  { title: 'Промежуточная встреча', kind: 'midpoint', offsetDays: 45, withManager: true },
+  { title: 'Итоги испытательного срока', kind: 'probation_end', offsetDays: 90, withManager: true },
+] as const
+
+// deno-lint-ignore no-explicit-any
+async function createOnboardingMeetings(admin: any, employeeId: string, hrId: string, managerId: string | null, hiredOn: string) {
+  for (const stage of ONBOARDING_SCHEDULE) {
+    const date = new Date(`${hiredOn}T11:00:00Z`); date.setUTCDate(date.getUTCDate() + stage.offsetDays)
+    const { data: meeting, error } = await admin.from('k_meetings').insert({
+      title: stage.title, employee_id: employeeId, organizer_id: hrId, meeting_type: stage.kind, scheduled_for: date.toISOString(),
+    }).select('id').single()
+    if (error) throw error
+    const participants = [employeeId, hrId, stage.withManager ? managerId : null].filter(Boolean)
+    const { error: participantsError } = await admin.from('k_meeting_participants')
+      .insert(participants.map((profile_id) => ({ meeting_id: meeting.id, profile_id })))
+    if (participantsError) throw participantsError
+  }
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors })
   const reply = (body: unknown, status = 200) => new Response(JSON.stringify(body), {
@@ -120,19 +143,7 @@ Deno.serve(async (req) => {
         const person = people.find((p) => p.key === key)!
         const rel = relations[key] ?? {}
         if (!rel.hr) continue
-        const schedule = [
-          ['Первый день','first_day',0], ['Итоги первой недели','first_week',7],
-          ['Промежуточная встреча','midpoint',45], ['Итоги испытательного срока','probation_end',90],
-        ] as const
-        for (const [title, kind, offset] of schedule) {
-          const date = new Date(`${person.hired_on}T11:00:00Z`); date.setUTCDate(date.getUTCDate()+offset)
-          const { data: meeting, error } = await admin.from('k_meetings').insert({
-            title, employee_id:ids[key], organizer_id:ids[rel.hr], meeting_type:kind, scheduled_for:date.toISOString(),
-          }).select('id').single()
-          if (error) throw error
-          const participants = [ids[key], ids[rel.hr], rel.manager ? ids[rel.manager] : null].filter(Boolean)
-          await admin.from('k_meeting_participants').insert(participants.map((profile_id) => ({ meeting_id:meeting.id, profile_id })))
-        }
+        await createOnboardingMeetings(admin, ids[key], ids[rel.hr], rel.manager ? ids[rel.manager] : null, person.hired_on!)
       }
 
       const demoTasks = [
@@ -185,6 +196,9 @@ Deno.serve(async (req) => {
         full_name:employee.full_name, job_title:employee.job_title ?? '', role_label:roleLabel,
       })
       if (demoError) { await admin.auth.admin.deleteUser(data.user.id); throw demoError }
+      if (employee.hr_id && employee.hired_on) {
+        await createOnboardingMeetings(admin, data.user.id, employee.hr_id, employee.manager_id ?? null, employee.hired_on)
+      }
       for (const partnerId of [...new Set([employee.hr_id,employee.manager_id].filter(Boolean) as string[])]) {
         const { data:partner } = await admin.from('k_profiles').select('full_name').eq('id',partnerId).single()
         const { data:chat,error:chatError } = await admin.from('k_chats').insert({
