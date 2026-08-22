@@ -590,3 +590,35 @@ html,body,#root{height:100%;overflow:hidden}.app-backdrop{height:100vh;min-heigh
   .calendar-actions{justify-content:flex-start;gap:9px;overflow-x:auto;padding-bottom:3px}
   .calendar-actions>*{flex:0 0 auto}
 }
+
+/* Larger and more readable survey sending flow. */
+.survey-send-modal{width:min(720px,100%);padding:32px}
+.survey-send-modal .modal-heading{margin-bottom:24px}
+.survey-send-modal .modal-heading h2{font-size:26px;letter-spacing:-.4px}
+.survey-send-modal .modal-heading p{font-size:14px;line-height:1.45}
+.survey-send-modal .form-stack{gap:19px}
+.survey-send-modal fieldset{padding:16px;border-radius:14px}
+.survey-send-modal legend,.survey-send-modal>form>label{font-size:14px}
+.survey-send-modal .search-box.compact{height:48px;border-radius:11px;padding-inline:14px}
+.survey-send-modal .search-box input{font-size:14px}
+.survey-send-modal .profile-picker{gap:12px}
+.survey-send-modal .profile-picker .person-picker-list{max-height:290px;gap:10px;padding-right:5px}
+.survey-send-modal .person-picker-list button{min-height:72px;padding:11px 12px;border-radius:12px;gap:11px}
+.survey-send-modal .person-picker-list .avatar-sm{width:42px;height:42px;font-size:14px}
+.survey-send-modal .person-picker-list strong{font-size:14px;line-height:1.35}
+.survey-send-modal .person-picker-list small{font-size:12px;line-height:1.35;margin-top:3px}
+.survey-send-modal .person-picker-list i{font-size:17px;font-weight:700}
+.survey-send-modal>form>label>select,.survey-send-modal>form>label>input{min-height:52px;padding:13px 15px;font-size:15px}
+.survey-send-modal .toggle-field{min-height:76px;padding:15px 16px;gap:12px;border-radius:12px}
+.survey-send-modal .toggle-field input{width:20px;height:20px;flex:0 0 auto}
+.survey-send-modal .toggle-field b{font-size:15px}
+.survey-send-modal .toggle-field small{font-size:12px;line-height:1.4;margin-top:5px}
+.survey-send-modal>form>.button{min-height:54px;font-size:16px}
+.survey-send-modal>form>.button svg{width:20px;height:20px}
+
+@media(max-width:640px){
+  .survey-send-modal{width:100%;padding:24px 17px calc(20px + env(safe-area-inset-bottom))}
+  .survey-send-modal .modal-heading h2{font-size:23px}
+  .survey-send-modal .profile-picker .person-picker-list{max-height:260px}
+  .survey-send-modal .person-picker-list button{min-height:68px}
+}
