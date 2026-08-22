@@ -799,3 +799,35 @@ input[type="checkbox"]:disabled{opacity:.5;cursor:not-allowed}
 }
 
 @media(prefers-reduced-motion:reduce){.date-time-trigger,.date-time-trigger svg,.date-picker-popover,.date-picker-head button,.date-picker-days button,.date-picker-actions button{animation:none!important;transition:none!important}}
+
+/* Larger and more readable new-chat form. */
+.chat-create-modal{width:min(760px,100%);padding:32px}
+.chat-create-modal .modal-heading{margin-bottom:25px}
+.chat-create-modal .modal-heading h2{font-size:27px;letter-spacing:-.4px}
+.chat-create-modal .modal-heading p{font-size:14px;line-height:1.5}
+.chat-create-modal .form-stack{gap:20px}
+.chat-create-modal>form>label,.chat-create-modal legend{font-size:14px}
+.chat-create-modal>form>label>input{min-height:52px;padding:13px 15px;font-size:15px}
+.chat-create-modal fieldset{padding:16px;border-radius:14px}
+.chat-create-modal .search-box.compact{height:48px;border-radius:11px;padding-inline:14px}
+.chat-create-modal .search-box input{font-size:14px}
+.chat-create-modal .profile-picker{gap:12px}
+.chat-create-modal .profile-picker .person-picker-list{max-height:340px;gap:10px;padding-right:5px}
+.chat-create-modal .person-picker-list button{min-height:76px;padding:12px 13px;border-radius:12px;gap:12px}
+.chat-create-modal .person-picker-list .avatar-sm{width:44px;height:44px;flex:0 0 44px;aspect-ratio:1;font-size:14px}
+.chat-create-modal .person-picker-list strong{font-size:14px;line-height:1.35}
+.chat-create-modal .person-picker-list small{font-size:12px;line-height:1.35;margin-top:4px}
+.chat-create-modal .person-picker-list i{font-size:18px;font-weight:750}
+.chat-create-modal .selection-summary{font-size:13px;min-height:22px}
+.chat-create-modal .selection-summary svg{width:17px;height:17px}
+.chat-create-modal .modal-actions{gap:12px;padding-top:4px}
+.chat-create-modal .modal-actions .button{min-width:170px;min-height:54px;padding-inline:22px;font-size:15px}
+
+@media(max-width:640px){
+  .chat-create-modal{width:100%;padding:24px 17px calc(20px + env(safe-area-inset-bottom))}
+  .chat-create-modal .modal-heading h2{font-size:23px}
+  .chat-create-modal .person-picker-list{grid-template-columns:1fr}
+  .chat-create-modal .profile-picker .person-picker-list{max-height:310px}
+  .chat-create-modal .modal-actions{display:grid;grid-template-columns:1fr 1fr}
+  .chat-create-modal .modal-actions .button{width:100%;min-width:0}
+}
