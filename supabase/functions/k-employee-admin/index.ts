@@ -42,17 +42,39 @@ const ONBOARDING_SCHEDULE = [
 ] as const
 
 // deno-lint-ignore no-explicit-any
+async function insertMeeting(admin: any, employeeId: string, organizerId: string, participantIds: (string | null)[], title: string, kind: string, date: Date) {
+  const { data: meeting, error } = await admin.from('k_meetings').insert({
+    title, employee_id: employeeId, organizer_id: organizerId, meeting_type: kind, scheduled_for: date.toISOString(),
+  }).select('id').single()
+  if (error) throw error
+  const participants = participantIds.filter(Boolean)
+  const { error: participantsError } = await admin.from('k_meeting_participants')
+    .insert(participants.map((profile_id) => ({ meeting_id: meeting.id, profile_id })))
+  if (participantsError) throw participantsError
+}
+
+// deno-lint-ignore no-explicit-any
 async function createOnboardingMeetings(admin: any, employeeId: string, hrId: string, managerId: string | null, hiredOn: string) {
   for (const stage of ONBOARDING_SCHEDULE) {
     const date = new Date(`${hiredOn}T11:00:00Z`); date.setUTCDate(date.getUTCDate() + stage.offsetDays)
-    const { data: meeting, error } = await admin.from('k_meetings').insert({
-      title: stage.title, employee_id: employeeId, organizer_id: hrId, meeting_type: stage.kind, scheduled_for: date.toISOString(),
-    }).select('id').single()
-    if (error) throw error
-    const participants = [employeeId, hrId, stage.withManager ? managerId : null].filter(Boolean)
-    const { error: participantsError } = await admin.from('k_meeting_participants')
-      .insert(participants.map((profile_id) => ({ meeting_id: meeting.id, profile_id })))
-    if (participantsError) throw participantsError
+    await insertMeeting(admin, employeeId, hrId, [employeeId, hrId, stage.withManager ? managerId : null], stage.title, stage.kind, date)
+  }
+}
+
+// «После постановки ИПР» (по сценарию — сразу по итогам испытательного срока, hired_on + 90 дней):
+// промежуточная встреча через полгода, итоговая годовая встреча, далее ежегодный цикл.
+// Настоящей бесконечной повторяемости пока нет (в проекте нет cron/scheduled-функций) —
+// предсоздаём цикл на DEVELOPMENT_CYCLE_YEARS лет вперёд, этого достаточно, чтобы показать сам цикл.
+const DEVELOPMENT_CYCLE_YEARS = 2
+// deno-lint-ignore no-explicit-any
+async function createDevelopmentCycleMeetings(admin: any, employeeId: string, hrId: string, managerId: string | null, hiredOn: string) {
+  const probationEnd = new Date(`${hiredOn}T11:00:00Z`); probationEnd.setUTCDate(probationEnd.getUTCDate() + 90)
+  for (let half = 1; half <= DEVELOPMENT_CYCLE_YEARS * 2; half++) {
+    const date = new Date(probationEnd); date.setUTCMonth(date.getUTCMonth() + half * 6)
+    const isAnnual = half % 2 === 0
+    const title = isAnnual ? 'Итоговая годовая встреча по ИПР' : 'Промежуточная встреча по ИПР'
+    const kind = isAnnual ? 'annual_review' : 'ipr_checkin'
+    await insertMeeting(admin, employeeId, hrId, [employeeId, hrId, managerId], title, kind, date)
   }
 }
 
@@ -144,6 +166,7 @@ Deno.serve(async (req) => {
         const rel = relations[key] ?? {}
         if (!rel.hr) continue
         await createOnboardingMeetings(admin, ids[key], ids[rel.hr], rel.manager ? ids[rel.manager] : null, person.hired_on!)
+        await createDevelopmentCycleMeetings(admin, ids[key], ids[rel.hr], rel.manager ? ids[rel.manager] : null, person.hired_on!)
       }
 
       const demoTasks = [
@@ -198,6 +221,7 @@ Deno.serve(async (req) => {
       if (demoError) { await admin.auth.admin.deleteUser(data.user.id); throw demoError }
       if (employee.hr_id && employee.hired_on) {
         await createOnboardingMeetings(admin, data.user.id, employee.hr_id, employee.manager_id ?? null, employee.hired_on)
+        await createDevelopmentCycleMeetings(admin, data.user.id, employee.hr_id, employee.manager_id ?? null, employee.hired_on)
       }
       for (const partnerId of [...new Set([employee.hr_id,employee.manager_id].filter(Boolean) as string[])]) {
         const { data:partner } = await admin.from('k_profiles').select('full_name').eq('id',partnerId).single()
