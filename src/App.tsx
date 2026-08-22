@@ -21,12 +21,13 @@ const profileNameParts=(fullName:string)=>{const[firstName='',lastName='',...mid
 
 export default function App(){
   const[session,setSession]=useState<Session|null>(null);const[data,setData]=useState(emptyData);const[view,setView]=useState<ViewName>('home');const[loading,setLoading]=useState(true);const[loadedFor,setLoadedFor]=useState<string|null>(null);const[loginBusy,setLoginBusy]=useState(false);const[error,setError]=useState('');const[toast,setToast]=useState('');const[notificationsOpen,setNotificationsOpen]=useState(false);const[profileOpen,setProfileOpen]=useState(false);const[selectedEmployee,setSelectedEmployee]=useState<Profile|null>(null);const[mobileMenuOpen,setMobileMenuOpen]=useState(false);const[theme,setTheme]=useState<Theme>(()=>(localStorage.getItem('korus-theme') as Theme)|| (matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'))
-  const me=data.profiles.find((profile)=>profile.id===session?.user.id)??null
+  const userId=session?.user.id??null
+  const me=data.profiles.find((profile)=>profile.id===userId)??null
   useEffect(()=>{document.documentElement.dataset.theme=theme;localStorage.setItem('korus-theme',theme)},[theme])
   useEffect(()=>{if(!mobileMenuOpen)return;const close=(event:KeyboardEvent)=>{if(event.key==='Escape')setMobileMenuOpen(false)};document.body.classList.add('mobile-menu-visible');window.addEventListener('keydown',close);return()=>{document.body.classList.remove('mobile-menu-visible');window.removeEventListener('keydown',close)}},[mobileMenuOpen])
-  const refreshing=useRef(false);const refreshQueued=useRef(false)
+  const refreshing=useRef(false);const refreshQueued=useRef(false);const authenticatedUserId=useRef<string|null>(null)
   const refresh=useCallback(async()=>{
-    if(!session)return
+    if(!userId)return
     if(refreshing.current){refreshQueued.current=true;return}
     refreshing.current=true
     try{
@@ -35,26 +36,26 @@ export default function App(){
         setData(await api.loadWorkspace());setError('')
       }while(refreshQueued.current)
     }catch(cause){setError(cause instanceof Error?cause.message:'Не удалось загрузить данные')}
-    finally{refreshing.current=false;setLoadedFor(session.user.id);setLoading(false)}
-  },[session])
-  useEffect(()=>{if(!supabase){setLoading(false);return}void supabase.auth.getSession().then(({data:{session:next}})=>{setSession(next);if(!next)setLoading(false)});const{data:{subscription}}=supabase.auth.onAuthStateChange((_event,next)=>{if(next)setLoading(true);setSession(next)});return()=>subscription.unsubscribe()},[])
-  useEffect(()=>{if(session)void refresh();else{setData(emptyData);setLoadedFor(null)}},[session,refresh])
+    finally{refreshing.current=false;setLoadedFor(userId);setLoading(false)}
+  },[userId])
+  useEffect(()=>{if(!supabase){setLoading(false);return}void supabase.auth.getSession().then(({data:{session:next}})=>{authenticatedUserId.current=next?.user.id??null;setSession(next);if(!next)setLoading(false)});const{data:{subscription}}=supabase.auth.onAuthStateChange((_event,next)=>{const nextUserId=next?.user.id??null;const userChanged=authenticatedUserId.current!==nextUserId;authenticatedUserId.current=nextUserId;if(userChanged)setLoading(Boolean(next));setSession(next)});return()=>subscription.unsubscribe()},[])
+  useEffect(()=>{if(userId)void refresh();else{setData(emptyData);setLoadedFor(null)}},[userId,refresh])
   useEffect(()=>{
-    if(!supabase||!session)return
+    if(!supabase||!userId)return
     let debounce:ReturnType<typeof setTimeout>|null=null
-    const channel=supabase.channel(`korus-${session.user.id}`).on('postgres_changes',{event:'*',schema:'public'},()=>{
+    const channel=supabase.channel(`korus-${userId}`).on('postgres_changes',{event:'*',schema:'public'},()=>{
       if(debounce)clearTimeout(debounce)
       debounce=setTimeout(()=>void refresh(),400)
     }).subscribe()
     return()=>{if(debounce)clearTimeout(debounce);void supabase?.removeChannel(channel)}
-  },[session,refresh])
+  },[userId,refresh])
   const act=async(action:()=>Promise<void>,message='Сохранено')=>{try{await action();await refresh();if(message)setToast(message)}catch(cause){setToast(cause instanceof Error?cause.message:'Произошла ошибка')}finally{setTimeout(()=>setToast(''),3500)}}
   const login=async(login:string,password:string)=>{if(!supabase)return;setLoginBusy(true);setError('');const{error:authError}=await supabase.auth.signInWithPassword({email:loginToEmail(login),password});if(authError)setError('Неверный логин или пароль');setLoginBusy(false)}
   const logout=async()=>{await supabase?.auth.signOut();setView('home');setSelectedEmployee(null);setProfileOpen(false)}
 
   if(!isSupabaseConfigured)return <div className="setup-screen"><Sparkles/><h1>Подключите Supabase</h1><p>Добавьте публичные параметры проекта в переменные окружения.</p></div>
   if(!session)return <LoginPage onLogin={login} busy={loginBusy} error={error}/>
-  if(loading||loadedFor!==session.user.id)return <div className="loading-screen"><span/><b>Собираем ваше пространство…</b></div>
+  if(loading||loadedFor!==userId)return <div className="loading-screen"><span/><b>Собираем ваше пространство…</b></div>
   if(!me)return <div className="setup-screen"><UserRound/><h1>{error?'Не удалось загрузить профиль':'Профиль не найден'}</h1>{error&&<p className="setup-error">{error}</p>}<div className="setup-actions">{error&&<button className="button primary" onClick={()=>void refresh()}><RefreshCw/>Повторить</button>}<button className={`button ${error?'secondary':'primary'}`} onClick={()=>void logout()}>Выйти</button></div></div>
 
   const isManager=data.profiles.some((profile)=>profile.manager_id===me.id);const unread=data.notifications.filter((item)=>!item.is_read).length
