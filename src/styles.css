@@ -486,6 +486,9 @@ html,body,#root{height:100%;overflow:hidden}.app-backdrop{height:100vh;min-heigh
 .employee-form-modal .person-picker-list small{font-size:11px;line-height:1.35;margin-top:3px}
 .employee-form-modal .person-picker-list i{font-size:16px;font-weight:700}
 .employee-form-modal .picker-clear{font-size:13px;padding-top:9px}
+.employee-form-modal .employee-assignment-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px;align-items:start}
+.employee-form-modal .employee-assignment-fields>.profile-picker-field{height:100%;margin:0}
+.employee-form-modal .employee-assignment-fields>.profile-picker-field>legend{line-height:1.3}
 .employee-form-modal .employee-permission-toggles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px}
 .employee-form-modal .toggle-field{min-height:74px;padding:14px 16px;gap:12px;border-radius:12px}
 .employee-form-modal .toggle-field input{width:20px;height:20px;flex:0 0 auto}
@@ -493,6 +496,41 @@ html,body,#root{height:100%;overflow:hidden}.app-backdrop{height:100vh;min-heigh
 .employee-form-modal .toggle-field small{font-size:12px;line-height:1.4;margin-top:4px}
 .employee-form-modal .modal-actions{gap:12px;padding-top:6px}
 .employee-form-modal .modal-actions .button{min-width:180px;min-height:52px;font-size:15px}
+
+/* Animated corporate checkboxes. */
+input[type="checkbox"]{appearance:none;-webkit-appearance:none;width:20px!important;height:20px!important;min-width:20px!important;min-height:20px!important;padding:0!important;border:2px solid #c9c3dc;border-radius:6px;background:#fff;display:grid;place-items:center;flex:0 0 20px!important;transition:border-color .2s ease,background-color .2s ease,box-shadow .2s ease,transform .16s ease}
+input[type="checkbox"]::after{content:"";width:5px;height:9px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg) scale(0);transform-origin:center;opacity:0;transition:transform .2s cubic-bezier(.34,1.56,.64,1),opacity .14s ease}
+input[type="checkbox"]:hover{border-color:var(--purple);box-shadow:0 0 0 4px #6654d912}
+input[type="checkbox"]:focus-visible{outline:none;border-color:var(--purple);box-shadow:0 0 0 4px #6654d926}
+input[type="checkbox"]:checked{border-color:var(--purple);background:var(--purple);box-shadow:0 4px 12px #6654d936;animation:checkbox-pop .28s cubic-bezier(.34,1.56,.64,1)}
+input[type="checkbox"]:checked::after{transform:rotate(45deg) scale(1);opacity:1}
+input[type="checkbox"]:disabled{opacity:.5;cursor:not-allowed}
+@keyframes checkbox-pop{0%{transform:scale(.78)}65%{transform:scale(1.12)}100%{transform:scale(1)}}
+
+/* Animated corporate select menus. */
+.custom-select{position:relative;width:100%;font-weight:500;color:var(--ink)}
+.custom-select-native{position:absolute!important;width:1px!important;height:1px!important;min-height:0!important;padding:0!important;opacity:0;pointer-events:none}
+.custom-select-trigger{width:100%;min-height:46px;border:1px solid #dcd9e4;border-radius:10px;background:#fff;color:var(--ink);padding:11px 13px;display:flex;align-items:center;justify-content:space-between;gap:12px;text-align:left;transition:border-color .2s ease,box-shadow .2s ease,background-color .2s ease}
+.custom-select-trigger>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.custom-select-trigger svg{width:17px;height:17px;color:var(--purple);flex:0 0 auto;transition:transform .24s cubic-bezier(.34,1.56,.64,1)}
+.custom-select.is-open .custom-select-trigger{border-color:var(--purple);box-shadow:0 0 0 4px #6654d918}
+.custom-select.is-open .custom-select-trigger svg{transform:rotate(180deg)}
+.custom-select-menu{position:absolute;z-index:80;top:calc(100% + 7px);left:0;right:0;padding:6px;background:#fff;border:1px solid #dcd9e4;border-radius:12px;box-shadow:0 16px 38px #21193624;display:grid;gap:3px;opacity:0;visibility:hidden;pointer-events:none;transform:translateY(-7px) scale(.98);transform-origin:top;transition:opacity .18s ease,transform .22s cubic-bezier(.2,.8,.2,1),visibility 0s linear .22s}
+.custom-select.is-open .custom-select-menu{opacity:1;visibility:visible;pointer-events:auto;transform:translateY(0) scale(1);transition-delay:0s}
+.custom-select-menu button{width:100%;min-height:39px;border:0;border-radius:8px;padding:9px 10px;background:transparent;color:var(--ink);display:flex;align-items:center;justify-content:space-between;gap:10px;text-align:left;transition:background-color .16s ease,color .16s ease,transform .16s ease}
+.custom-select-menu button:hover{background:var(--purple-soft);color:var(--purple);transform:translateX(2px)}
+.custom-select-menu button svg{width:16px;height:16px;color:var(--purple);opacity:0;transform:scale(.55);transition:opacity .16s ease,transform .2s cubic-bezier(.34,1.56,.64,1)}
+.custom-select-menu button.selected{background:var(--purple-soft);color:var(--purple);font-weight:750}
+.custom-select-menu button.selected svg{opacity:1;transform:scale(1)}
+.custom-select.is-disabled .custom-select-trigger{cursor:not-allowed;opacity:.65;background:#f5f4f8}
+.question-editor .custom-select{min-width:0}
+.question-editor .custom-select-trigger{min-height:42px;padding:9px 11px;font-size:13px}
+[data-theme="dark"] input[type="checkbox"]{background:#292631;border-color:#595268}
+[data-theme="dark"] input[type="checkbox"]:checked{background:var(--purple);border-color:var(--purple)}
+[data-theme="dark"] .custom-select-trigger,[data-theme="dark"] .custom-select-menu{background:#292631;border-color:var(--line);color:var(--ink)}
+[data-theme="dark"] .custom-select.is-disabled .custom-select-trigger{background:#24212c}
+
+@media(prefers-reduced-motion:reduce){input[type="checkbox"],input[type="checkbox"]::after,.custom-select-trigger,.custom-select-trigger svg,.custom-select-menu,.custom-select-menu button,.custom-select-menu button svg{animation:none!important;transition:none!important}}
 
 /* Larger meeting creation form. */
 .meeting-create-modal{width:min(760px,100%);padding:32px}
@@ -537,6 +575,7 @@ html,body,#root{height:100%;overflow:hidden}.app-backdrop{height:100vh;min-heigh
   .employee-form-modal,.meeting-create-modal{width:100%;padding:24px 17px calc(20px + env(safe-area-inset-bottom))}
   .employee-form-modal .modal-heading h2,.meeting-create-modal .modal-heading h2{font-size:23px}
   .employee-form-modal .form-grid{gap:16px}
+  .employee-form-modal .employee-assignment-fields{grid-template-columns:1fr;gap:16px}
   .employee-form-modal .employee-permission-toggles{grid-template-columns:1fr;gap:12px}
   .employee-form-modal .profile-picker .person-picker-list,.meeting-create-modal .profile-picker .person-picker-list{max-height:260px}
   .meeting-modal{width:100%;padding:24px 17px calc(20px + env(safe-area-inset-bottom))}
