@@ -364,3 +364,100 @@ html,body,#root{height:100%;overflow:hidden}.app-backdrop{height:100vh;min-heigh
   .profile-trigger-icon{display:block;width:21px;height:21px;stroke-width:2.3}
 }
 [data-theme="dark"] .profile-trigger{background:var(--surface-elevated);border-color:#675d91}[data-theme="dark"] .profile-trigger:hover,[data-theme="dark"] .profile-trigger:focus-visible{border-color:var(--purple)}
+
+/* Centered corporate login. It deliberately keeps a light palette regardless of the saved app theme. */
+.login-page{
+  --ink:#242132;
+  --muted:#777485;
+  --line:#e8e6ed;
+  --purple:#6654d9;
+  --purple-dark:#5140bd;
+  --purple-soft:#f0edff;
+  min-height:100dvh;
+  height:100dvh;
+  overflow:auto;
+  display:grid;
+  grid-template-columns:1fr;
+  place-items:center;
+  padding:clamp(24px,5vw,64px) 20px;
+  color:#242132;
+  color-scheme:light;
+  background:radial-gradient(circle at 5% 5%,#fff3a8 0,transparent 27%),radial-gradient(circle at 94% 8%,#f5bfdc 0,transparent 30%),linear-gradient(140deg,#6d58dc 0%,#ba78c2 55%,#f4bd78 100%);
+}
+.login-shell{
+  position:relative;
+  z-index:1;
+  width:min(880px,100%);
+  padding:clamp(28px,4vw,52px);
+  border:1px solid #e5e2eb;
+  border-top:5px solid #6654d9;
+  border-radius:26px;
+  background:#fff;
+  box-shadow:0 24px 70px #2d254319;
+}
+.login-brand{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:30px}
+.login-brand>span{width:44px;height:44px;border-radius:13px;background:#6654d9;color:#fff;display:grid;place-items:center}
+.login-brand>span svg{width:22px;height:22px}
+.login-brand b,.login-brand small{display:block}
+.login-brand b{font-size:18px;letter-spacing:.8px;color:#242132}
+.login-brand small{margin-top:2px;font-size:11px;color:#777485}
+.login-intro{max-width:560px;margin:0 auto 28px;text-align:center}
+.login-intro h1{margin:8px 0 9px;font-size:clamp(32px,4vw,42px);letter-spacing:-1.4px;color:#242132}
+.login-intro p{margin:0;font-size:15px;line-height:1.6;color:#777485}
+.login-page .eyebrow{color:#6654d9}
+.login-page .login-card{width:min(500px,100%);margin:0 auto;gap:18px}
+.login-page label{font-size:13px;color:#4e4a5d}
+.login-page input{padding:14px 15px;border-color:#dcd9e4;background:#fff;color:#242132;font-size:15px}
+.login-page .password-field{border-color:#dcd9e4;background:#fff}
+.login-page .password-field input{border:0}
+.login-page .password-field button{color:#777485}
+.login-page .button.primary{background:#6654d9;color:#fff}
+.login-page .button.primary:hover{background:#5140bd}
+.login-page .form-error{background:#fff0f2;color:#ae4051}
+.login-page .demo-accounts{margin-top:38px;padding-top:30px;border-top:1px solid #e8e6ed}
+.demo-accounts-heading{margin-bottom:18px;text-align:center}
+.demo-accounts-heading h2{margin:6px 0;font-size:22px;color:#242132}
+.demo-accounts-heading p{margin:0;font-size:13px;color:#777485}
+.login-page .demo-account-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;max-height:300px;overflow:auto;padding:2px}
+.login-page .demo-account-list button{
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr) auto;
+  gap:11px;
+  align-items:center;
+  padding:13px;
+  border:1px solid #e8e6ed;
+  border-radius:14px;
+  background:#fff;
+  color:#242132;
+  text-align:left;
+}
+.login-page .demo-account-list button:hover{border-color:#bcb4ef;background:#faf9ff;color:#242132;box-shadow:0 7px 18px #6654d912}
+.login-page .demo-account-list strong{font-size:13px;color:#242132}
+.login-page .demo-account-list small{font-size:11px;color:#777485}
+.login-page .demo-account-list svg{color:#6654d9}
+.login-page .demo-initials{
+  width:38px;
+  height:38px;
+  min-width:38px;
+  border:1px solid #ddd7ff;
+  background:#eeeaff!important;
+  color:#5b49ce!important;
+  font-size:12px;
+}
+.login-page .login-note{color:#9692a0!important}
+.login-footer{margin-top:28px;text-align:center;color:#9692a0;font-size:11px}
+
+[data-theme="dark"] .login-page{color:#242132;background:radial-gradient(circle at 5% 5%,#fff3a8 0,transparent 27%),radial-gradient(circle at 94% 8%,#f5bfdc 0,transparent 30%),linear-gradient(140deg,#6d58dc 0%,#ba78c2 55%,#f4bd78 100%)}
+[data-theme="dark"] .login-page input,[data-theme="dark"] .login-page .password-field{border-color:#dcd9e4;background:#fff;color:#242132}
+[data-theme="dark"] .login-page .demo-account-list button{border-color:#e8e6ed;background:#fff;color:#242132}
+[data-theme="dark"] .login-page .demo-account-list button:hover{border-color:#bcb4ef;background:#faf9ff;color:#242132}
+
+@media(max-width:680px){
+  .login-page{place-items:start center;padding:16px 12px}
+  .login-shell{padding:24px 16px;border-radius:20px}
+  .login-brand{margin-bottom:24px}
+  .login-intro{margin-bottom:24px}
+  .login-intro h1{font-size:30px}
+  .login-page .demo-account-list{grid-template-columns:1fr;max-height:none}
+}
+@media(max-width:380px){.login-shell{padding:22px 14px}}
