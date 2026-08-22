@@ -688,10 +688,10 @@ input[type="checkbox"]:disabled{opacity:.5;cursor:not-allowed}
 .schedule-row strong{font-size:15px}
 .schedule-row span{font-size:12px;margin-top:5px}
 
-/* Centered, comfortable calendar controls on desktop. */
+/* Right-aligned calendar controls on desktop. */
 .calendar-head{display:grid;grid-template-columns:minmax(190px,1fr) auto minmax(190px,1fr);align-items:center;gap:24px;padding:28px 30px 22px}
 .calendar-head>div:first-child{grid-column:1;min-width:0}
-.calendar-actions{grid-column:2;justify-content:center;gap:12px}
+.calendar-actions{grid-column:3;justify-content:flex-end;gap:12px}
 .calendar-info-button{width:46px;height:46px;border-radius:12px}
 .calendar-info-button svg{width:20px;height:20px}
 .segmented{min-height:46px;padding:5px;border-radius:12px;gap:3px}
