@@ -5,9 +5,9 @@ import type { Profile } from '../types'
 const initials = (name:string) => name.split(/\s+/).slice(0,2).map((part)=>part[0]).join('').toUpperCase()
 export function Avatar({profile,size='md'}:{profile:Profile;size?:'sm'|'md'|'lg'}) { return <span className={`avatar avatar-${size}`}>{initials(profile.full_name)}</span> }
 export function Badge({children,tone='gray'}:{children:ReactNode;tone?:'gray'|'purple'|'green'|'red'|'orange'|'blue'}) { return <span className={`badge badge-${tone}`}>{children}</span> }
-export function Modal({title,subtitle,onClose,children,wide=false}:{title:string;subtitle?:string;onClose:()=>void;children:ReactNode;wide?:boolean}) {
+export function Modal({title,subtitle,onClose,children,wide=false,className=''}:{title:string;subtitle?:string;onClose:()=>void;children:ReactNode;wide?:boolean;className?:string}) {
   return <div className="modal-backdrop" onMouseDown={(event)=>event.target===event.currentTarget&&onClose()}>
-    <section className={`modal-card ${wide?'modal-wide':''}`} role="dialog" aria-modal="true">
+    <section className={`modal-card ${wide?'modal-wide':''} ${className}`.trim()} role="dialog" aria-modal="true">
       <button className="icon-button modal-close" onClick={onClose} aria-label="Закрыть"><X/></button>
       <div className="modal-heading"><h2>{title}</h2>{subtitle&&<p>{subtitle}</p>}</div>{children}
     </section>

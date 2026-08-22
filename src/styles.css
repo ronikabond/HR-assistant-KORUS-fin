@@ -461,3 +461,22 @@ html,body,#root{height:100%;overflow:hidden}.app-backdrop{height:100vh;min-heigh
   .login-page .demo-account-list{grid-template-columns:1fr;max-height:none}
 }
 @media(max-width:380px){.login-shell{padding:22px 14px}}
+
+/* Spacious meeting details with stable action buttons. */
+.meeting-modal{width:min(620px,100%);padding:30px}
+.meeting-modal .modal-heading{margin-bottom:24px}
+.meeting-modal .meeting-detail{gap:20px;margin-bottom:26px}
+.meeting-modal .detail-row{padding:16px 17px;border-radius:12px}
+.meeting-modal .person-line{padding:2px 5px}
+.meeting-modal .participant-list{gap:10px 12px}
+.meeting-modal .participant-list .badge{padding:7px 11px;line-height:1.35}
+.meeting-modal .modal-actions{margin-top:0;padding-top:22px;border-top:1px solid var(--line);gap:10px;flex-wrap:wrap}
+.meeting-modal .modal-actions .button{min-width:120px;min-height:46px;flex:1 1 120px;white-space:nowrap}
+
+@media(max-width:640px){
+  .meeting-modal{width:100%;padding:24px 17px calc(20px + env(safe-area-inset-bottom))}
+  .meeting-modal .modal-heading{margin-bottom:20px}
+  .meeting-modal .meeting-detail{gap:17px;margin-bottom:22px}
+  .meeting-modal .modal-actions{display:grid;grid-template-columns:1fr;padding-top:18px}
+  .meeting-modal .modal-actions .button{width:100%;min-width:0}
+}
