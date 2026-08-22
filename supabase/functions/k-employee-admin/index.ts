@@ -230,8 +230,10 @@ Deno.serve(async (req) => {
         full_name:employee.full_name, job_title:employee.job_title ?? '', role_label:roleLabel,
       })
       if (demoError) { await admin.auth.admin.deleteUser(data.user.id); throw demoError }
+      // Онбординг-встречи уже создаёт БД-триггер k_seed_onboarding_meetings (AFTER INSERT ON k_profiles,
+      // срабатывает т.к. hr_id передан прямо при вставке выше) — здесь досоздаём только годовой цикл ИПР,
+      // которого триггер не знает.
       if (employee.hr_id && employee.hired_on) {
-        await createOnboardingMeetings(admin, data.user.id, employee.hr_id, employee.manager_id ?? null, employee.hired_on)
         await createDevelopmentCycleMeetings(admin, data.user.id, employee.hr_id, employee.manager_id ?? null, employee.hired_on)
       }
       for (const partnerId of [...new Set([employee.hr_id,employee.manager_id].filter(Boolean) as string[])]) {
