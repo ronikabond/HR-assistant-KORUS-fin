@@ -592,7 +592,11 @@ html,body,#root{height:100%;overflow:hidden}.app-backdrop{height:100vh;min-heigh
 }
 
 /* Explicit view and edit modes for survey templates. */
-.template-mode.is-viewing input[readonly],.template-mode.is-viewing textarea[readonly],.template-mode.is-viewing select:disabled{color:var(--text);background:#f8f7fc;cursor:default;opacity:1}
+.template-mode.is-viewing input[readonly],.template-mode.is-viewing textarea[readonly],.template-mode.is-viewing select:disabled{color:var(--ink);background:#f8f7fc;cursor:default;opacity:1}
+[data-theme="dark"] .template-mode.is-viewing input[readonly],[data-theme="dark"] .template-mode.is-viewing textarea[readonly],[data-theme="dark"] .template-mode.is-viewing select:disabled{color:#f5f2f8;-webkit-text-fill-color:#f5f2f8;background:var(--surface-muted);border-color:#514b59;box-shadow:none;opacity:1}
+[data-theme="dark"] .template-mode.is-viewing textarea[readonly]{color:#d8d2df;-webkit-text-fill-color:#d8d2df}
+[data-theme="dark"] .template-mode.is-viewing .question-editor>div{padding:10px;border:1px solid #45404d;border-radius:13px;background:var(--surface-elevated)}
+[data-theme="dark"] .template-mode.is-viewing .question-editor b{background:#443a69;color:#c8bcff}
 .survey-template-modal .question-editor.is-editing>div{grid-template-columns:38px minmax(0,1fr) 176px 48px}
 .question-delete{width:48px;height:48px;border-radius:11px}
 .question-delete svg{width:18px;height:18px}
