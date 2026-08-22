@@ -591,6 +591,24 @@ html,body,#root{height:100%;overflow:hidden}.app-backdrop{height:100vh;min-heigh
   .calendar-actions>*{flex:0 0 auto}
 }
 
+/* Explicit view and edit modes for survey templates. */
+.template-mode.is-viewing input[readonly],.template-mode.is-viewing textarea[readonly],.template-mode.is-viewing select:disabled{color:var(--text);background:#f8f7fc;cursor:default;opacity:1}
+.survey-template-modal .question-editor.is-editing>div{grid-template-columns:38px minmax(0,1fr) 176px 48px}
+.question-delete{width:48px;height:48px;border-radius:11px}
+.question-delete svg{width:18px;height:18px}
+.question-delete:disabled{cursor:not-allowed;opacity:.38}
+.template-mode-actions{display:flex;justify-content:flex-end;gap:10px}
+.template-mode-actions .button{min-width:210px}
+
+@media(max-width:640px){
+  .survey-template-modal .question-editor.is-editing>div{grid-template-columns:38px minmax(0,1fr) 48px}
+  .survey-template-modal .question-editor.is-editing>div>input{grid-column:2/4}
+  .survey-template-modal .question-editor.is-editing>div>select{grid-column:2}
+  .survey-template-modal .question-editor.is-editing>div>.question-delete{grid-column:3;grid-row:2}
+  .template-mode-actions{flex-direction:column-reverse}
+  .template-mode-actions .button{width:100%;min-width:0}
+}
+
 /* Larger and more readable survey sending flow. */
 .survey-send-modal{width:min(720px,100%);padding:32px}
 .survey-send-modal .modal-heading{margin-bottom:24px}
