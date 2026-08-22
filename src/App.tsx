@@ -54,7 +54,7 @@ export default function App(){
   const logout=async()=>{await supabase?.auth.signOut();setView('home');setSelectedEmployee(null);setProfileOpen(false)}
 
   if(!isSupabaseConfigured)return <div className="setup-screen"><Sparkles/><h1>Подключите Supabase</h1><p>Добавьте публичные параметры проекта в переменные окружения.</p></div>
-  if(!session)return <LoginPage onLogin={login} busy={loginBusy} error={error}/>
+  if(!session)return <LoginPage onLogin={login} busy={loginBusy} error={error} theme={theme} onToggleTheme={()=>setTheme(theme==='light'?'dark':'light')}/>
   if(loading||loadedFor!==userId)return <div className="loading-screen"><span/><b>Собираем ваше пространство…</b></div>
   if(!me)return <div className="setup-screen"><UserRound/><h1>{error?'Не удалось загрузить профиль':'Профиль не найден'}</h1>{error&&<p className="setup-error">{error}</p>}<div className="setup-actions">{error&&<button className="button primary" onClick={()=>void refresh()}><RefreshCw/>Повторить</button>}<button className={`button ${error?'secondary':'primary'}`} onClick={()=>void logout()}>Выйти</button></div></div>
 
