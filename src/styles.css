@@ -604,7 +604,7 @@ html,body,#root{height:100%;overflow:hidden}.app-backdrop{height:100vh;min-heigh
 .survey-send-modal .profile-picker{gap:12px}
 .survey-send-modal .profile-picker .person-picker-list{max-height:290px;gap:10px;padding-right:5px}
 .survey-send-modal .person-picker-list button{min-height:72px;padding:11px 12px;border-radius:12px;gap:11px}
-.survey-send-modal .person-picker-list .avatar-sm{width:42px;height:42px;font-size:14px}
+.survey-send-modal .person-picker-list .avatar-sm{width:42px;height:42px;flex:0 0 42px;aspect-ratio:1;font-size:14px}
 .survey-send-modal .person-picker-list strong{font-size:14px;line-height:1.35}
 .survey-send-modal .person-picker-list small{font-size:12px;line-height:1.35;margin-top:3px}
 .survey-send-modal .person-picker-list i{font-size:17px;font-weight:700}
