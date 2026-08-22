@@ -487,8 +487,10 @@ html,body,#root{height:100%;overflow:hidden}.app-backdrop{height:100vh;min-heigh
 .employee-form-modal .person-picker-list i{font-size:16px;font-weight:700}
 .employee-form-modal .picker-clear{font-size:13px;padding-top:9px}
 .employee-form-modal .employee-assignment-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px;align-items:start}
-.employee-form-modal .employee-assignment-fields>.profile-picker-field{height:100%;margin:0}
-.employee-form-modal .employee-assignment-fields>.profile-picker-field>legend{line-height:1.3}
+.employee-form-modal .employee-assignment-field{display:flex;min-width:0;flex-direction:column;gap:7px}
+.employee-form-modal .employee-assignment-label{font-size:14px;font-weight:750;line-height:1.3;color:#4e4a5d}
+.employee-form-modal .employee-assignment-field>.profile-picker-field{flex:1;margin:0}
+[data-theme="dark"] .employee-form-modal .employee-assignment-label{color:var(--ink)}
 .employee-form-modal .employee-permission-toggles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px}
 .employee-form-modal .toggle-field{min-height:74px;padding:14px 16px;gap:12px;border-radius:12px}
 .employee-form-modal .toggle-field input{width:20px;height:20px;flex:0 0 auto}
