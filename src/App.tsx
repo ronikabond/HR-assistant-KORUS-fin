@@ -26,7 +26,8 @@ export default function App(){
   const me=data.profiles.find((profile)=>profile.id===userId)??null
   useEffect(()=>{document.documentElement.dataset.theme=theme;localStorage.setItem('korus-theme',theme)},[theme])
   useEffect(()=>{if(!mobileMenuOpen)return;const close=(event:KeyboardEvent)=>{if(event.key==='Escape')setMobileMenuOpen(false)};document.body.classList.add('mobile-menu-visible');window.addEventListener('keydown',close);return()=>{document.body.classList.remove('mobile-menu-visible');window.removeEventListener('keydown',close)}},[mobileMenuOpen])
-  const refreshing=useRef(false);const refreshQueued=useRef(false);const authenticatedUserId=useRef<string|null>(null)
+  const refreshing=useRef(false);const refreshQueued=useRef(false);const authenticatedUserId=useRef<string|null>(null);const pageContentRef=useRef<HTMLDivElement>(null)
+  useEffect(()=>{pageContentRef.current?.scrollTo({top:0});window.scrollTo({top:0})},[view,selectedEmployee])
   const refresh=useCallback(async()=>{
     if(!userId)return
     if(refreshing.current){refreshQueued.current=true;return}
@@ -98,7 +99,7 @@ export default function App(){
           <button className="profile-trigger" onClick={()=>setProfileOpen(true)} aria-label="Открыть профиль" title="Мой профиль"><Avatar profile={me} size="sm"/><UserRound className="profile-trigger-icon"/><span>Мой профиль</span></button>
         </div>
       </header>
-      <div className="page-content">{error&&<div className="form-error">{error}</div>}<div key={selectedEmployee?`employee-${selectedEmployee.id}`:view} className="page-transition">{page()}</div></div>
+      <div className="page-content" ref={pageContentRef}>{error&&<div className="form-error">{error}</div>}<div key={selectedEmployee?`employee-${selectedEmployee.id}`:view} className="page-transition">{page()}</div></div>
     </main>
     {notificationsOpen&&<NotificationsPanel notifications={data.notifications} meetings={ownMeetings} profiles={data.profiles} meId={me.id} onClose={()=>setNotificationsOpen(false)} onRead={(id)=>act(()=>api.readNotification(id),'Прочитано')} onReadAll={()=>act(()=>api.markAllNotificationsRead(me.id),'Все прочитано')} onDelete={(id)=>act(()=>api.deleteNotification(id),'Уведомление удалено')}/>} {profileOpen&&<ProfileModal me={me} profiles={data.profiles} onSave={(url)=>act(()=>api.saveTelegram(me.id,url),'Telegram сохранён')} onClose={()=>setProfileOpen(false)}/>} {toast&&<div className="toast"><span className="toast-check">✓</span>{toast}</div>}
   </div></div>
