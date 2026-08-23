@@ -14,4 +14,9 @@ export function Modal({title,subtitle,onClose,children,wide=false,className=''}:
   </div>
 }
 export function EmptyState({icon, title, text, action}:{icon:ReactNode;title:string;text:string;action?:ReactNode}) { return <div className="empty-state"><div className="empty-icon">{icon}</div><h3>{title}</h3><p>{text}</p>{action}</div> }
-export function PersonLine({profile,meta}:{profile:Profile;meta?:string}) { return <div className="person-line"><Avatar profile={profile}/><div><strong>{profile.full_name}</strong><span>{meta??profile.job_title}</span></div></div> }
+export function PersonLine({profile,meta,onClick}:{profile:Profile;meta?:string;onClick?:()=>void}) {
+  const content = <><Avatar profile={profile}/><div><strong>{profile.full_name}</strong><span>{meta??profile.job_title}</span></div></>
+  return onClick
+    ? <button type="button" className="person-line person-line-clickable" onClick={onClick}>{content}</button>
+    : <div className="person-line">{content}</div>
+}
