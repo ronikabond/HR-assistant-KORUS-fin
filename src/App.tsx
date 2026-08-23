@@ -97,7 +97,7 @@ export default function App(){
           <button className="profile-trigger" onClick={()=>setProfileOpen(true)} aria-label="Открыть профиль" title="Мой профиль"><Avatar profile={me} size="sm"/><UserRound className="profile-trigger-icon"/><span>Мой профиль</span></button>
         </div>
       </header>
-      <div className="page-content">{error&&<div className="form-error">{error}</div>}{page()}</div>
+      <div className="page-content">{error&&<div className="form-error">{error}</div>}<div key={selectedEmployee?`employee-${selectedEmployee.id}`:view} className="page-transition">{page()}</div></div>
     </main>
     {notificationsOpen&&<NotificationsPanel notifications={data.notifications} meetings={ownMeetings} profiles={data.profiles} meId={me.id} onClose={()=>setNotificationsOpen(false)} onRead={(id)=>act(()=>api.readNotification(id),'Прочитано')} onReadAll={()=>act(()=>api.markAllNotificationsRead(me.id),'Все прочитано')} onDelete={(id)=>act(()=>api.deleteNotification(id),'Уведомление удалено')}/>} {profileOpen&&<ProfileModal me={me} profiles={data.profiles} onSave={(url)=>act(()=>api.saveTelegram(me.id,url),'Telegram сохранён')} onClose={()=>setProfileOpen(false)}/>} {toast&&<div className="toast"><span className="toast-check">✓</span>{toast}</div>}
   </div></div>

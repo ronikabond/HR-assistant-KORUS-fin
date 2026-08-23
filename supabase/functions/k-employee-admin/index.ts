@@ -84,6 +84,7 @@ async function createOnboardingMeetings(admin: any, employeeId: string, hrId: st
   if (await scheduleAlreadyExists(admin, employeeId, 'first_day')) return
   for (const stage of ONBOARDING_SCHEDULE) {
     const date = new Date(`${hiredOn}T11:00:00Z`); date.setUTCDate(date.getUTCDate() + stage.offsetDays)
+    if (date.getTime() < Date.now()) continue
     const participants: Array<{ id: string | null; role: ParticipantRole }> = [{ id: employeeId, role: 'employee' }, { id: hrId, role: 'hr' }]
     if (stage.withManager) participants.push({ id: managerId, role: 'manager' })
     await insertMeeting(admin, employeeId, hrId, participants, stage.title, stage.kind, date)
@@ -104,6 +105,7 @@ async function createDevelopmentCycleMeetings(admin: any, employeeId: string, hr
     const isAnnual = half % 2 === 0
     const title = isAnnual ? 'Итоговая годовая встреча по ИПР' : 'Промежуточная встреча по ИПР'
     const kind = isAnnual ? 'annual_review' : 'ipr_checkin'
+    if (date.getTime() < Date.now()) continue
     await insertMeeting(admin, employeeId, hrId, [{ id: employeeId, role: 'employee' }, { id: hrId, role: 'hr' }, { id: managerId, role: 'manager' }], title, kind, date)
   }
 }
