@@ -68,6 +68,7 @@ async function insertMeeting(admin: any, employeeId: string, organizerId: string
   const { error: participantsError } = await admin.from('k_meeting_participants')
     .insert(participants.filter((p) => p.id).map((p) => ({ meeting_id: meeting.id, profile_id: p.id, participation_role: p.role })))
   if (participantsError) throw participantsError
+  return slot
 }
 
 // Платформа иногда выполняет запрос дважды параллельно на холодном старте (гонка изолятов) —
@@ -80,14 +81,17 @@ async function scheduleAlreadyExists(admin: any, employeeId: string, kind: strin
 }
 
 // deno-lint-ignore no-explicit-any
-async function createOnboardingMeetings(admin: any, employeeId: string, hrId: string, managerId: string | null, hiredOn: string) {
+async function createOnboardingMeetings(admin: any, employeeId: string, employeeName: string, hrId: string, managerId: string | null, hiredOn: string) {
   if (await scheduleAlreadyExists(admin, employeeId, 'first_day')) return
   for (const stage of ONBOARDING_SCHEDULE) {
     const date = new Date(`${hiredOn}T11:00:00Z`); date.setUTCDate(date.getUTCDate() + stage.offsetDays)
     if (date.getTime() < Date.now()) continue
     const participants: Array<{ id: string | null; role: ParticipantRole }> = [{ id: employeeId, role: 'employee' }, { id: hrId, role: 'hr' }]
     if (stage.withManager) participants.push({ id: managerId, role: 'manager' })
-    await insertMeeting(admin, employeeId, hrId, participants, stage.title, stage.kind, date)
+    const slot = await insertMeeting(admin, employeeId, hrId, participants, stage.title, stage.kind, date)
+    if (stage.kind === 'probation_end' && managerId) {
+      await insertMeeting(admin, employeeId, managerId, [{ id: managerId, role: 'manager' }], `Подготовить ИПР — ${employeeName}`, 'deadline', slot)
+    }
   }
 }
 
@@ -197,7 +201,7 @@ Deno.serve(async (req) => {
         const person = people.find((p) => p.key === key)!
         const rel = relations[key] ?? {}
         if (!rel.hr) continue
-        await createOnboardingMeetings(admin, ids[key], ids[rel.hr], rel.manager ? ids[rel.manager] : null, person.hired_on!)
+        await createOnboardingMeetings(admin, ids[key], person.full_name, ids[rel.hr], rel.manager ? ids[rel.manager] : null, person.hired_on!)
         await createDevelopmentCycleMeetings(admin, ids[key], ids[rel.hr], rel.manager ? ids[rel.manager] : null, person.hired_on!)
       }
 
