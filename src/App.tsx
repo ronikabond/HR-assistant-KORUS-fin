@@ -53,7 +53,7 @@ export default function App(){
   },[userId,refresh])
   const act=async(action:()=>Promise<void>,message='Сохранено')=>{try{await action();await refresh();if(message)setToast(message)}catch(cause){setToast(cause instanceof Error?cause.message:'Произошла ошибка')}finally{setTimeout(()=>setToast(''),3500)}}
   const login=async(login:string,password:string)=>{if(!supabase)return;setLoginBusy(true);setError('');const{error:authError}=await supabase.auth.signInWithPassword({email:loginToEmail(login),password});if(authError)setError('Неверный логин или пароль');setLoginBusy(false)}
-  const logout=async()=>{await supabase?.auth.signOut();setView('home');setSelectedEmployee(null);setProfileOpen(false)}
+  const logout=async()=>{try{await supabase?.auth.signOut({scope:'local'})}catch{}setView('home');setSelectedEmployee(null);setProfileOpen(false)}
 
   if(!isSupabaseConfigured)return <div className="setup-screen"><Sparkles/><h1>Подключите Supabase</h1><p>Добавьте публичные параметры проекта в переменные окружения.</p></div>
   if(!session)return <LoginPage onLogin={login} busy={loginBusy} error={error} theme={theme} onToggleTheme={()=>setTheme(theme==='light'?'dark':'light')}/>
