@@ -970,7 +970,7 @@ input[type="checkbox"]:disabled{opacity:.5;cursor:not-allowed}
 .survey-take-modal .survey-question>span{font-size:12px;line-height:1.4}
 .survey-take-modal .survey-question h3{font-size:16px;line-height:1.5;margin:9px 0 18px}
 .survey-take-modal .survey-question textarea{min-height:120px;padding:15px 16px;font-size:15px;line-height:1.6}
-.survey-take-modal .scale-answer{width:100%;min-width:0;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+.survey-take-modal .scale-answer{width:100%;min-width:0;grid-template-columns:repeat(10,minmax(0,1fr));gap:8px}
 .survey-take-modal .scale-answer label{min-width:0}
 .survey-take-modal .scale-answer span{width:100%;min-height:56px;aspect-ratio:auto;border-radius:10px;font-size:14px;font-weight:750;transition:border-color .18s ease,background-color .18s ease,color .18s ease,transform .18s ease}
 .survey-take-modal .scale-answer label:hover span{border-color:#bcb3ee;background:var(--purple-soft);color:var(--purple);transform:translateY(-1px)}
@@ -983,6 +983,6 @@ input[type="checkbox"]:disabled{opacity:.5;cursor:not-allowed}
   .survey-take-modal .modal-heading h2{font-size:23px}
   .survey-take-modal .survey-question{padding:17px}
   .survey-take-modal .survey-question h3{font-size:15px}
-  .survey-take-modal .scale-answer{gap:7px}
+  .survey-take-modal .scale-answer{grid-template-columns:repeat(5,minmax(0,1fr));gap:7px}
   .survey-take-modal .scale-answer span{min-height:48px;font-size:13px}
 }
