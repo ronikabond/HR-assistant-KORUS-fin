@@ -884,3 +884,38 @@ input[type="checkbox"]:disabled{opacity:.5;cursor:not-allowed}
 }
 
 @media(prefers-reduced-motion:reduce){.sidebar nav button,.sidebar nav button::before,.sidebar nav button svg,.sidebar nav button.active svg,.sidebar nav button.active span,.page-transition{animation:none!important;transition:none!important;transform:none!important}}
+
+
+/* Readable spacing for dense information groups and menus. */
+.employee-profile-card{row-gap:24px}
+.employee-profile-main h2{margin:7px 0 6px}
+.employee-profile-main p{line-height:1.5}
+.employee-profile-facts{padding-top:24px;margin-top:4px;column-gap:36px;row-gap:22px}
+.employee-profile-facts>span{line-height:1.45}
+.employee-profile-facts small{margin-bottom:7px;line-height:1.35}
+.employee-profile-card .onboarding-stepper-wrap{padding-top:24px;margin-top:4px}
+.onboarding-stepper-wrap>.eyebrow{margin-bottom:18px}
+.onboarding-stepper{padding:2px 0 7px}
+.stepper-step{gap:7px}
+.stepper-label{line-height:1.45;margin-top:1px}
+.stepper-date{line-height:1.4;margin-top:1px}
+.ipr-sections{gap:26px}
+.task-card{padding:20px}
+.task-card h4{margin-bottom:18px}
+.task-columns{column-gap:32px;row-gap:20px}
+.task-columns span{line-height:1.4}
+.task-columns p{margin-top:8px;line-height:1.65}
+.profile-fields{column-gap:28px;row-gap:24px}
+.profile-fields>div{padding-bottom:18px}
+.profile-fields strong{margin-top:8px;line-height:1.5}
+.approval-row{gap:16px;padding:17px 0}
+.approval-row span{margin-top:6px;line-height:1.45}
+.approval-row small{margin-top:4px;line-height:1.4}
+
+@media(max-width:640px){
+  .employee-profile-card{row-gap:19px}
+  .employee-profile-facts{padding-top:20px;row-gap:18px}
+  .employee-profile-card .onboarding-stepper-wrap{padding-top:20px}
+  .task-card{padding:17px}
+  .task-columns{row-gap:18px}
+}
