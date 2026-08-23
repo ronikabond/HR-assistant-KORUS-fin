@@ -919,3 +919,42 @@ input[type="checkbox"]:disabled{opacity:.5;cursor:not-allowed}
   .task-card{padding:17px}
   .task-columns{row-gap:18px}
 }
+
+
+/* Unified main-page headings and larger team workspace cards. */
+.page-title h1,.page-title.compact h1,.surveys-page-title h1{font-size:40px;line-height:1.15;letter-spacing:-1px}
+.page-title.compact{margin-bottom:27px}
+
+.team-grid{grid-template-columns:repeat(2,minmax(340px,1fr));gap:22px}
+.team-card{min-height:260px;padding:26px;border-radius:18px}
+.team-person{align-items:flex-start;gap:17px}
+.team-person .avatar-lg{width:70px;height:70px;font-size:20px!important}
+.team-person h3{font-size:18px;line-height:1.4;margin:5px 0 6px}
+.team-person p{font-size:14px;line-height:1.45;margin-bottom:5px}
+.team-person span{font-size:12px;line-height:1.4}
+.team-next{gap:13px;padding:15px 16px;margin:23px 0;border-radius:12px}
+.team-next svg{width:21px;height:21px;flex:0 0 auto}
+.team-next small{font-size:12px;line-height:1.4}
+.team-next strong{font-size:15px;line-height:1.4;margin-top:5px}
+.team-link{font-size:13px;line-height:1.4}
+.team-link svg{width:17px;height:17px}
+
+.requests{margin-top:34px}
+.requests>h3{font-size:16px;padding-bottom:14px;margin-bottom:12px}
+.request-row{min-height:112px;padding:18px 20px;gap:18px;margin-top:12px;border-radius:14px}
+.request-title{gap:12px;flex-wrap:wrap}
+.request-row strong{font-size:15px;line-height:1.45}
+.request-row p{font-size:13px;line-height:1.6;margin:9px 0}
+.request-row small{font-size:12px;line-height:1.5}
+.request-row .row-actions{gap:8px}
+
+@media(max-width:900px){
+  .team-grid{grid-template-columns:1fr}
+}
+@media(max-width:640px){
+  .page-title h1,.page-title.compact h1,.surveys-page-title h1{font-size:30px;line-height:1.15;letter-spacing:-.8px}
+  .page-title.compact{margin-bottom:20px}
+  .team-card{min-height:0;padding:20px}
+  .team-person .avatar-lg{width:62px;height:62px;font-size:18px!important}
+  .request-row{padding:16px;align-items:flex-start}
+}
