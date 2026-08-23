@@ -856,3 +856,25 @@ input[type="checkbox"]:disabled{opacity:.5;cursor:not-allowed}
   .chat-create-modal .modal-actions{display:grid;grid-template-columns:1fr 1fr}
   .chat-create-modal .modal-actions .button{width:100%;min-width:0}
 }
+
+/* Smooth navigation and page transitions. */
+.sidebar nav button{isolation:isolate;overflow:hidden;transition:color .22s ease,transform .22s ease,box-shadow .22s ease}
+.sidebar nav button::before{content:"";position:absolute;z-index:-1;inset:3px;border-radius:12px;background:var(--purple-soft);opacity:0;transform:scale(.84);transition:opacity .2s ease,transform .28s cubic-bezier(.2,.8,.2,1)}
+.sidebar nav button:hover{transform:translateX(2px)}
+.sidebar nav button.active{background:transparent!important;box-shadow:inset 3px 0 0 var(--purple)}
+.sidebar nav button.active::before{opacity:1;transform:scale(1)}
+.sidebar nav button svg{transition:transform .24s cubic-bezier(.34,1.56,.64,1),color .2s ease}
+.sidebar nav button.active svg{transform:scale(1.12);animation:nav-icon-arrive .32s cubic-bezier(.34,1.56,.64,1)}
+.sidebar nav button.active span{animation:nav-label-arrive .25s ease both}
+@keyframes nav-icon-arrive{0%{transform:scale(.72) rotate(-7deg)}70%{transform:scale(1.18) rotate(2deg)}100%{transform:scale(1.12) rotate(0)}}
+@keyframes nav-label-arrive{from{opacity:.35;transform:translateX(-5px)}to{opacity:1;transform:translateX(0)}}
+.page-transition{min-width:0;animation:page-section-arrive .3s cubic-bezier(.2,.75,.25,1) both}
+@keyframes page-section-arrive{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:translateY(0)}}
+@media(min-width:901px){.page-content:has(.chats-page)>.page-transition{flex:1;min-height:0;display:flex;flex-direction:column}.page-transition>.chats-page{flex:1;min-height:0;height:auto}}
+
+@media(max-width:900px){
+  .sidebar nav button:hover{transform:translateY(-2px)}
+  .sidebar nav button.active{box-shadow:inset 0 -3px 0 var(--purple)}
+}
+
+@media(prefers-reduced-motion:reduce){.sidebar nav button,.sidebar nav button::before,.sidebar nav button svg,.sidebar nav button.active svg,.sidebar nav button.active span,.page-transition{animation:none!important;transition:none!important;transform:none!important}}
