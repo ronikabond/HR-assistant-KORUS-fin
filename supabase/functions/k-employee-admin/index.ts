@@ -56,17 +56,19 @@ async function findFreeSlot(admin: any, day: Date, participantIds: (string | nul
   const fallback = new Date(day); fallback.setUTCMinutes(fallback.getUTCMinutes() + 12 * 30); return fallback
 }
 
+type ParticipantRole = 'employee' | 'hr' | 'manager'
+
 // deno-lint-ignore no-explicit-any
-async function insertMeeting(admin: any, employeeId: string, organizerId: string, participantIds: (string | null)[], title: string, kind: string, date: Date) {
-  const slot = await findFreeSlot(admin, date, [organizerId, ...participantIds])
+async function insertMeeting(admin: any, employeeId: string, organizerId: string, participants: Array<{ id: string | null; role: ParticipantRole }>, title: string, kind: string, date: Date) {
+  const slot = await findFreeSlot(admin, date, [organizerId, ...participants.map((p) => p.id)])
   const { data: meeting, error } = await admin.from('k_meetings').insert({
     title, employee_id: employeeId, organizer_id: organizerId, meeting_type: kind, scheduled_for: slot.toISOString(),
   }).select('id').single()
   if (error) throw error
-  const participants = participantIds.filter(Boolean)
   const { error: participantsError } = await admin.from('k_meeting_participants')
-    .insert(participants.map((profile_id) => ({ meeting_id: meeting.id, profile_id })))
+    .insert(participants.filter((p) => p.id).map((p) => ({ meeting_id: meeting.id, profile_id: p.id, participation_role: p.role })))
   if (participantsError) throw participantsError
+  return slot
 }
 
 // Платформа иногда выполняет запрос дважды параллельно на холодном старте (гонка изолятов) —
@@ -79,11 +81,17 @@ async function scheduleAlreadyExists(admin: any, employeeId: string, kind: strin
 }
 
 // deno-lint-ignore no-explicit-any
-async function createOnboardingMeetings(admin: any, employeeId: string, hrId: string, managerId: string | null, hiredOn: string) {
+async function createOnboardingMeetings(admin: any, employeeId: string, employeeName: string, hrId: string, managerId: string | null, hiredOn: string) {
   if (await scheduleAlreadyExists(admin, employeeId, 'first_day')) return
   for (const stage of ONBOARDING_SCHEDULE) {
     const date = new Date(`${hiredOn}T11:00:00Z`); date.setUTCDate(date.getUTCDate() + stage.offsetDays)
-    await insertMeeting(admin, employeeId, hrId, [employeeId, hrId, stage.withManager ? managerId : null], stage.title, stage.kind, date)
+    if (date.getTime() < Date.now()) continue
+    const participants: Array<{ id: string | null; role: ParticipantRole }> = [{ id: employeeId, role: 'employee' }, { id: hrId, role: 'hr' }]
+    if (stage.withManager) participants.push({ id: managerId, role: 'manager' })
+    const slot = await insertMeeting(admin, employeeId, hrId, participants, stage.title, stage.kind, date)
+    if (stage.kind === 'probation_end' && managerId) {
+      await insertMeeting(admin, employeeId, managerId, [{ id: managerId, role: 'manager' }], `Подготовить ИПР — ${employeeName}`, 'deadline', slot)
+    }
   }
 }
 
@@ -101,7 +109,8 @@ async function createDevelopmentCycleMeetings(admin: any, employeeId: string, hr
     const isAnnual = half % 2 === 0
     const title = isAnnual ? 'Итоговая годовая встреча по ИПР' : 'Промежуточная встреча по ИПР'
     const kind = isAnnual ? 'annual_review' : 'ipr_checkin'
-    await insertMeeting(admin, employeeId, hrId, [employeeId, hrId, managerId], title, kind, date)
+    if (date.getTime() < Date.now()) continue
+    await insertMeeting(admin, employeeId, hrId, [{ id: employeeId, role: 'employee' }, { id: hrId, role: 'hr' }, { id: managerId, role: 'manager' }], title, kind, date)
   }
 }
 
@@ -192,7 +201,7 @@ Deno.serve(async (req) => {
         const person = people.find((p) => p.key === key)!
         const rel = relations[key] ?? {}
         if (!rel.hr) continue
-        await createOnboardingMeetings(admin, ids[key], ids[rel.hr], rel.manager ? ids[rel.manager] : null, person.hired_on!)
+        await createOnboardingMeetings(admin, ids[key], person.full_name, ids[rel.hr], rel.manager ? ids[rel.manager] : null, person.hired_on!)
         await createDevelopmentCycleMeetings(admin, ids[key], ids[rel.hr], rel.manager ? ids[rel.manager] : null, person.hired_on!)
       }
 

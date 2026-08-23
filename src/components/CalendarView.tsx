@@ -7,7 +7,7 @@ import { Badge, EmptyState, Modal, PersonLine } from './UI'
 import { ProfilePicker } from './ProfilePicker'
 import { DateTimeField } from './DateTimeField'
 
-const meetingColor=(meeting:Meeting,me:Profile)=>meeting.meeting_type!=='personal'?'meeting-official':meeting.participant_statuses?.[me.id]==='pending'?'meeting-pending':'meeting-personal'
+const meetingColor=(meeting:Meeting,me:Profile)=>meeting.meeting_type==='deadline'?'meeting-deadline':meeting.meeting_type!=='personal'?'meeting-official':meeting.participant_statuses?.[me.id]==='pending'?'meeting-pending':'meeting-personal'
 function roleFor(meeting:Meeting, me:Profile, profiles:Profile[]):MeetingParticipationRole{
   const stored=meeting.participant_roles?.[me.id]
   if(stored&&stored!=='participant')return stored
