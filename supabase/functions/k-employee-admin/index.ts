@@ -41,10 +41,26 @@ const ONBOARDING_SCHEDULE = [
   { title: 'Итоги испытательного срока', kind: 'probation_end', offsetDays: 90, withManager: true },
 ] as const
 
+// Подбираем ближайший свободный получасовой слот для организатора/руководителя в этот день —
+// иначе при совпадении этапов у разных сотрудников (например, у одного HR) встречи накладываются
+// друг на друга на одно и то же время. Логика зеркалит private.k_free_meeting_slot в миграциях.
+// deno-lint-ignore no-explicit-any
+async function findFreeSlot(admin: any, day: Date, participantIds: (string | null)[]) {
+  const busyParticipants = participantIds.filter(Boolean) as string[]
+  for (let step = 0; step <= 12; step++) {
+    const candidate = new Date(day); candidate.setUTCMinutes(candidate.getUTCMinutes() + step * 30)
+    const { count } = await admin.from('k_meeting_participants').select('meeting_id, k_meetings!inner(scheduled_for)', { count: 'exact', head: true })
+      .in('profile_id', busyParticipants).eq('k_meetings.scheduled_for', candidate.toISOString())
+    if (!count) return candidate
+  }
+  const fallback = new Date(day); fallback.setUTCMinutes(fallback.getUTCMinutes() + 12 * 30); return fallback
+}
+
 // deno-lint-ignore no-explicit-any
 async function insertMeeting(admin: any, employeeId: string, organizerId: string, participantIds: (string | null)[], title: string, kind: string, date: Date) {
+  const slot = await findFreeSlot(admin, date, [organizerId, ...participantIds])
   const { data: meeting, error } = await admin.from('k_meetings').insert({
-    title, employee_id: employeeId, organizer_id: organizerId, meeting_type: kind, scheduled_for: date.toISOString(),
+    title, employee_id: employeeId, organizer_id: organizerId, meeting_type: kind, scheduled_for: slot.toISOString(),
   }).select('id').single()
   if (error) throw error
   const participants = participantIds.filter(Boolean)
