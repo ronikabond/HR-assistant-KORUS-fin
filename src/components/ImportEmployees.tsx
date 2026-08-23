@@ -2,6 +2,7 @@ import { useRef, useState } from 'react'
 import { CheckCircle2, FileUp, Upload, XCircle } from 'lucide-react'
 import type { Profile } from '../types'
 import { Modal } from './UI'
+import { EMAIL_RE, PHONE_RE } from '../lib/validators'
 
 type ParsedRow = {
   full_name: string; login: string; password: string; job_title: string; department: string
@@ -45,6 +46,7 @@ function parseCsv(text: string, profiles: Profile[]): { rows: ParsedRow[]; missi
     const cells = splitCsvLine(line, delimiter)
     const get = (name: string) => (index(name) >= 0 ? (cells[index(name)] ?? '').trim() : '')
     const full_name = get('фио'); const login = get('логин'); const password = get('пароль'); const hired_on = get('дата выхода')
+    const corporate_email = get('почта'); const phone = get('телефон')
     const hrName = get('hr'); const managerName = get('руководитель')
     const hr = hrName ? findByName(hrName) : undefined
     const manager = managerName ? findByName(managerName) : undefined
@@ -53,11 +55,13 @@ function parseCsv(text: string, profiles: Profile[]): { rows: ParsedRow[]; missi
     else if (login.length < 6) error = 'Логин короче 6 символов'
     else if (password.length < 6) error = 'Пароль короче 6 символов'
     else if (!/^\d{4}-\d{2}-\d{2}$/.test(hired_on)) error = 'Дата выхода должна быть в формате ГГГГ-ММ-ДД'
+    else if (corporate_email && !EMAIL_RE.test(corporate_email)) error = 'Неверный формат почты'
+    else if (phone && !PHONE_RE.test(phone)) error = 'Неверный формат телефона'
     else if (hrName && !hr) error = `HR «${hrName}» не найден среди сотрудников`
     else if (managerName && !manager) error = `Руководитель «${managerName}» не найден среди сотрудников`
     return {
       full_name, login, password, job_title: get('должность'), department: get('департамент'),
-      hired_on, corporate_email: get('почта'), phone: get('телефон'),
+      hired_on, corporate_email, phone,
       hr_id: hr?.id ?? null, manager_id: manager?.id ?? null, error,
     }
   })
@@ -104,7 +108,7 @@ export function ImportEmployees({ profiles, onClose, onCreateOne, onFinished }: 
     {!rows && <div className="import-drop">
       <input ref={fileRef} type="file" accept=".csv,text/csv" hidden onChange={(e) => e.target.files?.[0] && void handleFile(e.target.files[0])}/>
       <FileUp/>
-      <p>Обязательные столбцы: <b>ФИО, Логин, Пароль, Дата выхода</b> (ГГГГ-ММ-ДД).<br/>Необязательные: Должность, Департамент, Почта, Телефон, HR, Руководитель — HR и Руководителя указывайте точным ФИО уже существующего сотрудника.</p>
+      <p>Обязательные столбцы: <b>ФИО, Логин, Пароль, Дата выхода</b> (ГГГГ-ММ-ДД).<br/>Необязательные: Должность, Департамент, Почта (имя@домен.ru), Телефон, HR, Руководитель — HR и Руководителя указывайте точным ФИО уже существующего сотрудника.</p>
       <button type="button" className="button primary" onClick={() => fileRef.current?.click()}><Upload/>Выбрать файл</button>
       {missingColumns.length > 0 && <div className="form-error">В файле не хватает столбцов: {missingColumns.join(', ')}</div>}
     </div>}
