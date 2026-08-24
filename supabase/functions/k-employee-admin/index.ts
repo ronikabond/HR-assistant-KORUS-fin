@@ -2,7 +2,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.1'
 
 const cors = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-korus-bootstrap-token',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 }
 
@@ -41,34 +41,18 @@ const ONBOARDING_SCHEDULE = [
   { title: 'Итоги испытательного срока', kind: 'probation_end', offsetDays: 90, withManager: true },
 ] as const
 
-// Подбираем ближайший свободный получасовой слот для организатора/руководителя в этот день —
-// иначе при совпадении этапов у разных сотрудников (например, у одного HR) встречи накладываются
-// друг на друга на одно и то же время. Логика зеркалит private.k_free_meeting_slot в миграциях.
-// deno-lint-ignore no-explicit-any
-async function findFreeSlot(admin: any, day: Date, participantIds: (string | null)[]) {
-  const busyParticipants = participantIds.filter(Boolean) as string[]
-  for (let step = 0; step <= 12; step++) {
-    const candidate = new Date(day); candidate.setUTCMinutes(candidate.getUTCMinutes() + step * 30)
-    const { count } = await admin.from('k_meeting_participants').select('meeting_id, k_meetings!inner(scheduled_for)', { count: 'exact', head: true })
-      .in('profile_id', busyParticipants).eq('k_meetings.scheduled_for', candidate.toISOString())
-    if (!count) return candidate
-  }
-  const fallback = new Date(day); fallback.setUTCMinutes(fallback.getUTCMinutes() + 12 * 30); return fallback
-}
-
 type ParticipantRole = 'employee' | 'hr' | 'manager'
 
 // deno-lint-ignore no-explicit-any
 async function insertMeeting(admin: any, employeeId: string, organizerId: string, participants: Array<{ id: string | null; role: ParticipantRole }>, title: string, kind: string, date: Date) {
-  const slot = await findFreeSlot(admin, date, [organizerId, ...participants.map((p) => p.id)])
-  const { data: meeting, error } = await admin.from('k_meetings').insert({
-    title, employee_id: employeeId, organizer_id: organizerId, meeting_type: kind, scheduled_for: slot.toISOString(),
-  }).select('id').single()
+  const uniqueParticipants = [...new Map(participants.filter((p) => p.id).map((p) => [p.id, p])).values()]
+  const { data: meetingId, error } = await admin.rpc('k_create_system_meeting', {
+    p_title: title, p_employee_id: employeeId, p_organizer_id: organizerId,
+    p_meeting_type: kind, p_scheduled_for: date.toISOString(),
+    p_participants: uniqueParticipants, p_duration_minutes: 60,
+  })
   if (error) throw error
-  const { error: participantsError } = await admin.from('k_meeting_participants')
-    .insert(participants.filter((p) => p.id).map((p) => ({ meeting_id: meeting.id, profile_id: p.id, participation_role: p.role })))
-  if (participantsError) throw participantsError
-  return slot
+  return meetingId ? date : null
 }
 
 // Платформа иногда выполняет запрос дважды параллельно на холодном старте (гонка изолятов) —
@@ -89,7 +73,7 @@ async function createOnboardingMeetings(admin: any, employeeId: string, employee
     const participants: Array<{ id: string | null; role: ParticipantRole }> = [{ id: employeeId, role: 'employee' }, { id: hrId, role: 'hr' }]
     if (stage.withManager) participants.push({ id: managerId, role: 'manager' })
     const slot = await insertMeeting(admin, employeeId, hrId, participants, stage.title, stage.kind, date)
-    if (stage.kind === 'probation_end' && managerId) {
+    if (stage.kind === 'probation_end' && managerId && slot) {
       await insertMeeting(admin, employeeId, managerId, [{ id: managerId, role: 'manager' }], `Подготовить ИПР — ${employeeName}`, 'deadline', slot)
     }
   }
@@ -137,6 +121,11 @@ Deno.serve(async (req) => {
     }
 
     if (action === 'bootstrap') {
+      const expectedBootstrapToken = Deno.env.get('KORUS_BOOTSTRAP_TOKEN')
+      const suppliedBootstrapToken = req.headers.get('x-korus-bootstrap-token')
+      if (!expectedBootstrapToken || suppliedBootstrapToken !== expectedBootstrapToken) {
+        return reply({ error: 'Первичная настройка отключена или не авторизована' }, 403)
+      }
       const { count } = await admin.from('k_profiles').select('id', { count: 'exact', head: true })
       if ((count ?? 0) > 0) return reply({ error: 'Демонстрационные аккаунты уже созданы' }, 409)
 
@@ -236,6 +225,12 @@ Deno.serve(async (req) => {
     if (action === 'create') {
       const employee = payload.employee as EmployeeInput
       if (!employee.login || !employee.password || !employee.full_name) return reply({ error:'Заполните логин, пароль и ФИО' }, 400)
+      if (!actor.is_head_hr && (employee.is_hr || employee.is_head_hr)) {
+        return reply({ error:'Назначать HR и администратора может только главный администратор' }, 403)
+      }
+      if (!actor.is_head_hr && employee.hr_id !== actor.id) {
+        return reply({ error:'HR может создавать только своих сотрудников' }, 403)
+      }
       const { data, error } = await admin.auth.admin.createUser({
         email:normalizeEmail(employee.login), password:employee.password, email_confirm:true,
         app_metadata:{app:'korpus-hr'},
@@ -263,14 +258,11 @@ Deno.serve(async (req) => {
       }
       for (const partnerId of [...new Set([employee.hr_id,employee.manager_id].filter(Boolean) as string[])]) {
         const { data:partner } = await admin.from('k_profiles').select('full_name').eq('id',partnerId).single()
-        const { data:chat,error:chatError } = await admin.from('k_chats').insert({
-          title:partner?.full_name ?? 'Рабочий чат', created_by:data.user.id, is_group:false,
-        }).select('id').single()
+        const { error:chatError } = await admin.rpc('k_create_system_chat', {
+          p_title:partner?.full_name ?? 'Рабочий чат', p_creator_id:data.user.id,
+          p_participant_ids:[partnerId],
+        })
         if (chatError) throw chatError
-        const { error:membersError } = await admin.from('k_chat_participants').insert([
-          {chat_id:chat.id,profile_id:data.user.id},{chat_id:chat.id,profile_id:partnerId},
-        ])
-        if (membersError) throw membersError
       }
       return reply({ ok:true, id:data.user.id })
     }
