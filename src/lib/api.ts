@@ -1,5 +1,5 @@
 import { supabase } from './supabase'
-import type { AccessScope, Chat, ChatMessage, DocumentItem, IprTask, Meeting, MeetingParticipationRole, Notification, Profile, RescheduleRequest, ResourceLink, SurveyRun, SurveySchedule, SurveyTemplate } from '../types'
+import type { AccessScope, Chat, ChatMessage, DocumentItem, EmployeeDirectoryEntry, IprTask, Meeting, MeetingParticipationRole, Notification, Profile, RescheduleRequest, ResourceLink, SurveyRun, SurveySchedule, SurveyTemplate } from '../types'
 
 const client = () => {
   if (!supabase) throw new Error('Supabase не настроен')
@@ -10,6 +10,7 @@ const notify=async(recipientIds:string[],kind:string,title:string,body:string)=>
 
 export interface WorkspaceData {
   profiles: Profile[]
+  chatDirectory: EmployeeDirectoryEntry[]
   tasks: IprTask[]
   meetings: Meeting[]
   reschedules: RescheduleRequest[]
@@ -27,9 +28,10 @@ export interface WorkspaceData {
 
 export async function loadWorkspace(): Promise<WorkspaceData> {
   const db = client()
-  const [profiles, currentProfile, tasks, meetings, participants, reschedules, chats, chatParticipants, chatRoster, messages, notifications, templates, questions, runs, assignments, answers, schedules, documents, documentRecipients, links, linkRecipients] = await Promise.all([
+  const [profiles, currentProfile, chatDirectory, tasks, meetings, participants, reschedules, chats, chatParticipants, chatRoster, messages, notifications, templates, questions, runs, assignments, answers, schedules, documents, documentRecipients, links, linkRecipients] = await Promise.all([
     db.from('k_profiles').select('*').order('full_name'),
     db.rpc('k_current_profile').single(),
+    db.rpc('k_chat_directory'),
     db.from('k_ipr_tasks').select('*').order('created_at'),
     db.from('k_meetings').select('*').neq('status','cancelled').order('scheduled_for'),
     db.from('k_meeting_participants').select('*'),
@@ -50,7 +52,7 @@ export async function loadWorkspace(): Promise<WorkspaceData> {
     db.from('k_resource_links').select('*').order('created_at',{ascending:false}),
     db.from('k_resource_link_recipients').select('*'),
   ])
-  for (const result of [profiles,currentProfile,tasks,meetings,participants,reschedules,chats,chatParticipants,chatRoster,messages,notifications,templates,questions,runs,assignments,answers,schedules,documents,documentRecipients,links,linkRecipients]) fail(result.error)
+  for (const result of [profiles,currentProfile,chatDirectory,tasks,meetings,participants,reschedules,chats,chatParticipants,chatRoster,messages,notifications,templates,questions,runs,assignments,answers,schedules,documents,documentRecipients,links,linkRecipients]) fail(result.error)
   const participantRows = participants.data ?? []
   const chatRosterRows = (chatRoster.data ?? []) as Array<{ chat_id:number; profile_id:string; full_name:string }>
   const profileRows = (profiles.data ?? []) as Profile[]
@@ -61,7 +63,7 @@ export async function loadWorkspace(): Promise<WorkspaceData> {
     questions:(questions.data ?? []).filter((question) => question.template_id === template.id),
   })) as SurveyTemplate[]
   return {
-    profiles:visibleProfiles, tasks:(tasks.data ?? []) as IprTask[],
+    profiles:visibleProfiles, chatDirectory:(chatDirectory.data ?? []) as EmployeeDirectoryEntry[], tasks:(tasks.data ?? []) as IprTask[],
     meetings:(meetings.data ?? []).map((meeting) => ({
       ...meeting,
       participant_ids:participantRows.filter((row) => row.meeting_id === meeting.id).map((row) => row.profile_id),
