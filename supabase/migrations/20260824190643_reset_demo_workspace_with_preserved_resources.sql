@@ -63,24 +63,24 @@ begin
   set storage_path=paths.new_path,updated_at=now()
   from jsonb_to_recordset(coalesce(p_document_paths,'[]'::jsonb)) as paths(id bigint,new_path text)
   where d.id=paths.id;
-  delete from public.k_document_recipients;
-  delete from public.k_document_hidden;
-  delete from public.k_resource_link_recipients;
-  delete from public.k_resource_link_hidden;
+  delete from public.k_document_recipients where true;
+  delete from public.k_document_hidden where true;
+  delete from public.k_resource_link_recipients where true;
+  delete from public.k_resource_link_hidden where true;
   update public.k_documents set owner_id=head_id,access_scope='office',department=null,updated_at=now();
   update public.k_resource_links set owner_id=head_id,access_scope='office',department=null,updated_at=now();
 
   -- Remove all user-generated history and operational data.
-  delete from public.k_survey_answers;
-  delete from public.k_survey_assignments;
-  delete from public.k_survey_runs;
-  delete from public.k_survey_schedules;
-  delete from public.k_notifications;
-  delete from public.k_reschedule_requests;
-  delete from public.k_meetings;
-  delete from public.k_ipr_tasks;
-  delete from public.k_chat_messages;
-  delete from public.k_chats;
+  delete from public.k_survey_answers where true;
+  delete from public.k_survey_assignments where true;
+  delete from public.k_survey_runs where true;
+  delete from public.k_survey_schedules where true;
+  delete from public.k_notifications where true;
+  delete from public.k_reschedule_requests where true;
+  delete from public.k_meetings where true;
+  delete from public.k_ipr_tasks where true;
+  delete from public.k_chat_messages where true;
+  delete from public.k_chats where true;
 
   -- Keep the two standard survey templates, but remove old custom drafts.
   delete from public.k_survey_templates where kind='custom';
