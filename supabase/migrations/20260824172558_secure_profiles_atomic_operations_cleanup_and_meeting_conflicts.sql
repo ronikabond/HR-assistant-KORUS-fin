@@ -82,6 +82,13 @@ set search_path = ''
 as $$
 begin
   if (select auth.uid()) is null then
+    -- Foreign-key actions and trusted server-side administration run without
+    -- a JWT. Keep anonymous database roles blocked while allowing Supabase's
+    -- service and migration roles to maintain profile references safely.
+    if current_user in ('postgres', 'supabase_admin', 'service_role') then
+      new.updated_at = now();
+      return new;
+    end if;
     raise exception 'Необходима авторизация';
   end if;
 
