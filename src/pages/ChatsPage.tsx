@@ -1,6 +1,6 @@
 import { LogOut, MessageCircle, Plus, Send, UserMinus, UsersRound } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import type { Chat, ChatMessage, Profile } from '../types'
+import type { Chat, ChatMessage, EmployeeDirectoryEntry, Profile } from '../types'
 import { Avatar, EmptyState, Modal } from '../components/UI'
 import { ProfilePicker } from '../components/ProfilePicker'
 
@@ -33,7 +33,7 @@ const participantCountLabel=(count:number)=>{
   return `${count} ${word}`
 }
 
-export function ChatsPage({me,profiles,chats,messages,onCreate,onSend,onRead,onLeave,onRemove}:{me:Profile;profiles:Profile[];chats:Chat[];messages:ChatMessage[];onCreate:(title:string,ids:string[])=>Promise<void>;onSend:(chatId:number,body:string)=>Promise<void>;onRead:(chatId:number)=>Promise<void>;onLeave:(chat:Chat)=>Promise<void>;onRemove:(chat:Chat,id:string)=>Promise<void>}){
+export function ChatsPage({me,profiles,chatDirectory,chats,messages,onCreate,onSend,onRead,onLeave,onRemove}:{me:Profile;profiles:Profile[];chatDirectory:EmployeeDirectoryEntry[];chats:Chat[];messages:ChatMessage[];onCreate:(title:string,ids:string[])=>Promise<void>;onSend:(chatId:number,body:string)=>Promise<void>;onRead:(chatId:number)=>Promise<void>;onLeave:(chat:Chat)=>Promise<void>;onRemove:(chat:Chat,id:string)=>Promise<void>}){
   const[selectedId,setSelectedId]=useState(chats[0]?.id??null)
   const[creating,setCreating]=useState(false)
   const[body,setBody]=useState('')
@@ -109,14 +109,14 @@ export function ChatsPage({me,profiles,chats,messages,onCreate,onSend,onRead,onL
       </div>
     </section>
     {creating&&<CreateChat
-      profiles={profiles.filter((profile)=>profile.id!==me.id)}
+      profiles={chatDirectory.filter((profile)=>profile.id!==me.id)}
       onClose={()=>setCreating(false)}
       onCreate={async(title,ids)=>{await onCreate(title,ids);setCreating(false)}}
     />}
   </>
 }
 
-function CreateChat({profiles,onClose,onCreate}:{profiles:Profile[];onClose:()=>void;onCreate:(title:string,ids:string[])=>Promise<void>}){
+function CreateChat({profiles,onClose,onCreate}:{profiles:EmployeeDirectoryEntry[];onClose:()=>void;onCreate:(title:string,ids:string[])=>Promise<void>}){
   const[title,setTitle]=useState('')
   const[selected,setSelected]=useState<string[]>([])
   return <Modal className="chat-create-modal" title="Новый чат" subtitle="Можно выбрать одного или нескольких сотрудников" onClose={onClose} wide>

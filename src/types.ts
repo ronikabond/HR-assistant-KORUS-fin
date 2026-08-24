@@ -18,6 +18,14 @@ export interface Profile {
   is_active?: boolean
 }
 
+export interface EmployeeDirectoryEntry {
+  id: Id
+  full_name: string
+  job_title: string
+  department?: string
+  is_active?: boolean
+}
+
 export type IprStatus = 'pending' | 'approved' | 'rejected'
 export interface IprTask {
   id: number
