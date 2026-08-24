@@ -27,7 +27,7 @@ export interface WorkspaceData {
 
 export async function loadWorkspace(): Promise<WorkspaceData> {
   const db = client()
-  const [profiles, currentProfile, tasks, meetings, participants, reschedules, chats, chatParticipants, messages, notifications, templates, questions, runs, assignments, answers, schedules, documents, documentRecipients, links, linkRecipients] = await Promise.all([
+  const [profiles, currentProfile, tasks, meetings, participants, reschedules, chats, chatParticipants, chatRoster, messages, notifications, templates, questions, runs, assignments, answers, schedules, documents, documentRecipients, links, linkRecipients] = await Promise.all([
     db.from('k_profiles').select('*').order('full_name'),
     db.rpc('k_current_profile').single(),
     db.from('k_ipr_tasks').select('*').order('created_at'),
@@ -36,6 +36,7 @@ export async function loadWorkspace(): Promise<WorkspaceData> {
     db.from('k_reschedule_requests').select('*').order('created_at', { ascending:false }),
     db.from('k_chats').select('*').order('created_at'),
     db.from('k_chat_participants').select('*'),
+    db.rpc('k_chat_roster'),
     db.from('k_chat_messages').select('*').order('created_at'),
     db.from('k_notifications').select('*').order('created_at', { ascending:false }),
     db.from('k_survey_templates').select('*').order('id'),
@@ -49,8 +50,9 @@ export async function loadWorkspace(): Promise<WorkspaceData> {
     db.from('k_resource_links').select('*').order('created_at',{ascending:false}),
     db.from('k_resource_link_recipients').select('*'),
   ])
-  for (const result of [profiles,currentProfile,tasks,meetings,participants,reschedules,chats,chatParticipants,messages,notifications,templates,questions,runs,assignments,answers,schedules,documents,documentRecipients,links,linkRecipients]) fail(result.error)
+  for (const result of [profiles,currentProfile,tasks,meetings,participants,reschedules,chats,chatParticipants,chatRoster,messages,notifications,templates,questions,runs,assignments,answers,schedules,documents,documentRecipients,links,linkRecipients]) fail(result.error)
   const participantRows = participants.data ?? []
+  const chatRosterRows = (chatRoster.data ?? []) as Array<{ chat_id:number; profile_id:string; full_name:string }>
   const profileRows = (profiles.data ?? []) as Profile[]
   const self = currentProfile.data as Profile
   const visibleProfiles = profileRows.some((profile)=>profile.id===self.id) ? profileRows : [self,...profileRows]
@@ -67,7 +69,12 @@ export async function loadWorkspace(): Promise<WorkspaceData> {
       participant_statuses:Object.fromEntries(participantRows.filter((row) => row.meeting_id === meeting.id).map((row) => [row.profile_id,row.response_status])),
     })) as Meeting[],
     reschedules:(reschedules.data ?? []) as RescheduleRequest[],
-    chats:(chats.data ?? []).map((chat)=>({...chat,participant_ids:(chatParticipants.data??[]).filter((p)=>p.chat_id===chat.id).map((p)=>p.profile_id),last_read_at:Object.fromEntries((chatParticipants.data??[]).filter((p)=>p.chat_id===chat.id).map((p)=>[p.profile_id,p.last_read_at]))})) as Chat[],
+    chats:(chats.data ?? []).map((chat)=>({
+      ...chat,
+      participant_ids:(chatParticipants.data??[]).filter((p)=>p.chat_id===chat.id).map((p)=>p.profile_id),
+      participants:chatRosterRows.filter((person)=>person.chat_id===chat.id).map((person)=>({id:person.profile_id,full_name:person.full_name})),
+      last_read_at:Object.fromEntries((chatParticipants.data??[]).filter((p)=>p.chat_id===chat.id).map((p)=>[p.profile_id,p.last_read_at])),
+    })) as Chat[],
     messages:(messages.data ?? []) as ChatMessage[],
     notifications:(notifications.data ?? []) as Notification[], templates:templateRows.filter((template)=>template.is_active!==false),
     runs:(runs.data ?? []).map((run)=>({...run,template:templateRows.find((template)=>template.id===run.template_id)})) as SurveyRun[], assignments:(assignments.data ?? []), answers:(answers.data ?? []), schedules:(schedules.data??[]) as SurveySchedule[],
