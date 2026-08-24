@@ -340,8 +340,8 @@ Deno.serve(async (req) => {
     if (action === 'create') {
       const employee = payload.employee as EmployeeInput
       if (!employee.login || !employee.password || !employee.full_name) return reply({ error:'Заполните логин, пароль и ФИО' }, 400)
-      if (!actor.is_head_hr && (employee.is_hr || employee.is_head_hr)) {
-        return reply({ error:'Назначать HR и администратора может только главный администратор' }, 403)
+      if (!actor.is_head_hr && employee.is_head_hr) {
+        return reply({ error:'Назначать администратора может только главный администратор' }, 403)
       }
       if (employee.hr_id) {
         const { data: selectedHr } = await admin.from('k_profiles').select('is_hr,is_active').eq('id', employee.hr_id).single()
