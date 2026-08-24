@@ -51,9 +51,11 @@ export default function App(){
     }).subscribe()
     return()=>{if(debounce)clearTimeout(debounce);void supabase?.removeChannel(channel)}
   },[userId,refresh])
-  const act=async(action:()=>Promise<void>,message='Сохранено')=>{try{await action();await refresh();if(message)setToast(message)}catch(cause){setToast(cause instanceof Error?cause.message:'Произошла ошибка')}finally{setTimeout(()=>setToast(''),3500)}}
+  const runAction=async(action:()=>Promise<void>,message:string,rethrow:boolean)=>{try{await action();await refresh();if(message)setToast(message)}catch(cause){setToast(cause instanceof Error?cause.message:'Произошла ошибка');if(rethrow)throw cause}finally{setTimeout(()=>setToast(''),3500)}}
+  const act=(action:()=>Promise<void>,message='Сохранено')=>runAction(action,message,false)
+  const actStrict=(action:()=>Promise<void>,message='Сохранено')=>runAction(action,message,true)
   const login=async(login:string,password:string)=>{if(!supabase)return;setLoginBusy(true);setError('');const{error:authError}=await supabase.auth.signInWithPassword({email:loginToEmail(login),password});if(authError)setError('Неверный логин или пароль');setLoginBusy(false)}
-  const logout=async()=>{try{await supabase?.auth.signOut({scope:'local'})}catch{}setView('home');setSelectedEmployee(null);setProfileOpen(false)}
+  const logout=async()=>{try{await supabase?.auth.signOut({scope:'local'})}catch(cause){void cause}setView('home');setSelectedEmployee(null);setProfileOpen(false)}
 
   if(!isSupabaseConfigured)return <div className="setup-screen"><Sparkles/><h1>Подключите Supabase</h1><p>Добавьте публичные параметры проекта в переменные окружения.</p></div>
   if(!session)return <LoginPage onLogin={login} busy={loginBusy} error={error} theme={theme} onToggleTheme={()=>setTheme(theme==='light'?'dark':'light')}/>
@@ -67,7 +69,7 @@ export default function App(){
   ]
   const ownMeetings=data.meetings.filter((meeting)=>meeting.participant_ids?.includes(me.id)||(meeting.employee_id===me.id&&meeting.meeting_type!=='deadline')||meeting.organizer_id===me.id)
   const ipr=(employee:Profile,readOnly=false)=> <IprView employee={employee} me={me} tasks={data.tasks.filter((task)=>task.employee_id===employee.id)} readOnly={readOnly} onAdd={(values)=>act(()=>api.addTask(employee.id,me.id,values,employee.id!==me.id),'Задача сохранена')} onDecide={(task,status,reason)=>act(()=>api.decideTask(task.id,status,me.id,reason),'Решение сохранено')} onDelete={(task)=>act(()=>api.deleteTask(task.id),'Задача удалена')} onComplete={(task,completed)=>act(()=>api.setTaskCompleted(task.id,completed),'Прогресс обновлён')}/>
-  const calendar=(readOnly=false)=><CalendarView me={me} profiles={data.profiles} meetings={ownMeetings} canCreate={!readOnly} readOnly={readOnly} onCreate={(values)=>act(()=>api.createMeeting({...values,organizer_id:me.id,meeting_type:'personal'}),'Приглашения отправлены')} onReschedule={(meeting,date,reason)=>act(()=>api.requestReschedule(meeting.id,me.id,date,reason),'Новая дата предложена')} onRespond={(meeting,status)=>act(()=>api.respondToMeeting(meeting.id,me.id,status),status==='accepted'?'Встреча подтверждена':'Встреча убрана из календаря')} onOpenProfile={setSelectedEmployee}/>
+  const calendar=(readOnly=false)=><CalendarView me={me} profiles={data.profiles} meetings={ownMeetings} canCreate={!readOnly} readOnly={readOnly} onCreate={(values)=>actStrict(()=>api.createMeeting({...values,organizer_id:me.id,meeting_type:'personal'}),'Приглашения отправлены')} onReschedule={(meeting,date,reason)=>actStrict(()=>api.requestReschedule(meeting.id,me.id,date,reason),'Новая дата предложена')} onRespond={(meeting,status)=>act(()=>api.respondToMeeting(meeting.id,me.id,status),status==='accepted'?'Встреча подтверждена':'Встреча убрана из календаря')} onOpenProfile={setSelectedEmployee}/>
   const page=()=>{
     if(selectedEmployee)return <><button className="back-link" onClick={()=>setSelectedEmployee(null)}>← Назад</button><EmployeeOverview person={selectedEmployee} profiles={data.profiles} meetings={data.meetings} onChat={()=>setView('chats')}/>{ipr(selectedEmployee)}</>
     switch(view){
