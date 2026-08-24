@@ -67,8 +67,8 @@ begin
   delete from public.k_document_hidden where true;
   delete from public.k_resource_link_recipients where true;
   delete from public.k_resource_link_hidden where true;
-  update public.k_documents set owner_id=head_id,access_scope='office',department=null,updated_at=now();
-  update public.k_resource_links set owner_id=head_id,access_scope='office',department=null,updated_at=now();
+  update public.k_documents set owner_id=head_id,access_scope='office',department=null,updated_at=now() where true;
+  update public.k_resource_links set owner_id=head_id,access_scope='office',department=null,updated_at=now() where true;
 
   -- Remove all user-generated history and operational data.
   delete from public.k_survey_answers where true;
