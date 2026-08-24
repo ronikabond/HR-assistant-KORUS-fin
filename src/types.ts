@@ -67,6 +67,7 @@ export interface Chat {
   is_group: boolean
   created_at: string
   participant_ids?: Id[]
+  participants?: Array<{ id: Id; full_name: string }>
   last_read_at?: Record<Id, string | null>
 }
 
