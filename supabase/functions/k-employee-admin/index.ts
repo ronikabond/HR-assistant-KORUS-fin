@@ -22,6 +22,11 @@ type EmployeeInput = {
   manager_id?: string | null
 }
 
+type ResetPerson = EmployeeInput & {
+  key: 'head' | 'hr' | 'manager' | 'ilya' | 'darya'
+  role_label: 'Администратор' | 'HR' | 'Руководитель' | 'Сотрудник'
+}
+
 const ru: Record<string, string> = {
   а:'a',б:'b',в:'v',г:'g',д:'d',е:'e',ё:'e',ж:'zh',з:'z',и:'i',й:'i',
   к:'k',л:'l',м:'m',н:'n',о:'o',п:'p',р:'r',с:'s',т:'t',у:'u',ф:'f',
@@ -31,6 +36,111 @@ const normalizeEmail = (login: string) => {
   const local = [...login.trim().toLocaleLowerCase('ru-RU')]
     .map((char) => ru[char] ?? char).join('').replace(/[^a-z0-9._-]/g, '.')
   return `${local}@korpus-demo.ru`
+}
+
+const RESET_PEOPLE: ResetPerson[] = [
+  {
+    key:'head',login:'иван.иванович',password:'Ivan2026',full_name:'Иван Петров Иванович',
+    job_title:'Главный HR-администратор',department:'HR',direction:'Управление персоналом',
+    corporate_email:'ivan.petrov@korus.demo',phone:'+7 900 100-00-01',hired_on:'2024-02-05',
+    is_hr:true,is_head_hr:true,role_label:'Администратор',
+  },
+  {
+    key:'hr',login:'олег.семенович',password:'Oleg2026',full_name:'Олег Смирнов Семёнович',
+    job_title:'HR-партнёр',department:'HR',direction:'Развитие сотрудников',
+    corporate_email:'oleg.smirnov@korus.demo',phone:'+7 900 100-00-02',hired_on:'2025-10-06',
+    is_hr:true,role_label:'HR',
+  },
+  {
+    key:'manager',login:'елена.морозова',password:'Elena2026',full_name:'Елена Морозова',
+    job_title:'Руководитель группы',department:'Цифровые решения',direction:'Проектное управление',
+    corporate_email:'elena.morozova@korus.demo',phone:'+7 900 100-00-03',hired_on:'2024-04-15',
+    role_label:'Руководитель',
+  },
+  {
+    key:'ilya',login:'илья.воронов',password:'Ilya2026',full_name:'Илья Воронов',
+    job_title:'Бизнес-аналитик',department:'Цифровые решения',direction:'Бизнес-анализ',
+    corporate_email:'ilya.voronov@korus.demo',phone:'+7 900 100-00-04',hired_on:'2026-07-20',
+    role_label:'Сотрудник',
+  },
+  {
+    key:'darya',login:'дарья.кузнецова',password:'Darya2026',full_name:'Дарья Кузнецова',
+    job_title:'Младший аналитик',department:'Цифровые решения',direction:'Бизнес-анализ',
+    corporate_email:'darya.kuznetsova@korus.demo',phone:'+7 900 100-00-05',hired_on:'2026-08-10',
+    role_label:'Сотрудник',
+  },
+]
+
+// deno-lint-ignore no-explicit-any
+async function replaceDemoWorkspace(admin: any) {
+  const { data: oldUsersData, error: oldUsersError } = await admin.auth.admin.listUsers({ page:1, perPage:1000 })
+  if (oldUsersError) throw oldUsersError
+  const oldUserIds = oldUsersData.users.map((user: { id:string }) => user.id)
+  const created: Array<{ person:ResetPerson; id:string }> = []
+  const copiedDocuments: Array<{ id:number; oldPath:string; newPath:string }> = []
+  let workspaceReplaced = false
+
+  try {
+    for (const person of RESET_PEOPLE) {
+      const { data, error } = await admin.auth.admin.createUser({
+        email:normalizeEmail(person.login),password:person.password,email_confirm:true,
+        app_metadata:{app:'korpus-hr'},
+      })
+      if (error) throw error
+      created.push({ person,id:data.user.id })
+    }
+
+    const headId = created.find((item) => item.person.key==='head')!.id
+    const { data: documents, error: documentsError } = await admin.from('k_documents')
+      .select('id,storage_path,file_name,mime_type')
+    if (documentsError) throw documentsError
+    for (const document of documents ?? []) {
+      const { data:file,error:downloadError } = await admin.storage.from('k-documents').download(document.storage_path)
+      if (downloadError) throw downloadError
+      const safeName = document.file_name.replace(/[^a-zA-Zа-яА-Я0-9._-]/g,'_')
+      const newPath = `${headId}/${crypto.randomUUID()}-${safeName}`
+      const { error:uploadError } = await admin.storage.from('k-documents').upload(newPath,file,{
+        contentType:document.mime_type||'application/octet-stream',upsert:false,
+      })
+      if (uploadError) throw uploadError
+      copiedDocuments.push({ id:document.id,oldPath:document.storage_path,newPath })
+    }
+
+    const accounts = Object.fromEntries(created.map(({ person,id }) => [person.key,{...person,id}]))
+    const { data:summary,error:resetError } = await admin.rpc('k_replace_demo_workspace',{
+      p_accounts:accounts,
+      p_document_paths:copiedDocuments.map((document)=>({id:document.id,new_path:document.newPath})),
+    })
+    if (resetError) throw resetError
+    workspaceReplaced = true
+
+    const cleanupErrors: string[] = []
+    if (copiedDocuments.length) {
+      const { error:removeError } = await admin.storage.from('k-documents')
+        .remove(copiedDocuments.map((document)=>document.oldPath))
+      if (removeError) cleanupErrors.push(`Старые файлы: ${removeError.message}`)
+    }
+    for (const userId of oldUserIds) {
+      const { error } = await admin.auth.admin.deleteUser(userId)
+      if (error) cleanupErrors.push(`Auth ${userId}: ${error.message}`)
+    }
+
+    return {
+      summary,
+      preserved_documents:copiedDocuments.length,
+      deleted_auth_users:oldUserIds.length-cleanupErrors.filter((item)=>item.startsWith('Auth ')).length,
+      cleanup_errors:cleanupErrors,
+      accounts:RESET_PEOPLE.map(({login,password,full_name,role_label})=>({login,password,full_name,role_label})),
+    }
+  } catch (error) {
+    if (!workspaceReplaced) {
+      if (copiedDocuments.length) {
+        await admin.storage.from('k-documents').remove(copiedDocuments.map((document)=>document.newPath))
+      }
+      for (const account of created) await admin.auth.admin.deleteUser(account.id)
+    }
+    throw error
+  }
 }
 
 // Этапы адаптации по ТЗ: день 1 и неделя 1 — HR и сотрудник; 1,5 и 3 месяца — HR, руководитель и сотрудник.
@@ -221,6 +331,11 @@ Deno.serve(async (req) => {
     if (authError || !authData.user) return reply({ error:'Сессия недействительна' }, 401)
     const { data: actor } = await admin.from('k_profiles').select('*').eq('id', authData.user.id).single()
     if (!actor?.is_hr) return reply({ error:'Доступно только HR' }, 403)
+
+    if (action === 'replace_demo') {
+      if (!actor.is_head_hr) return reply({ error:'Сброс доступен только главному администратору' }, 403)
+      return reply({ ok:true,...await replaceDemoWorkspace(admin) })
+    }
 
     if (action === 'create') {
       const employee = payload.employee as EmployeeInput
