@@ -168,7 +168,7 @@ begin
     (meeting_id,ilya_id,'employee','accepted'),(meeting_id,darya_id,'participant','pending');
 
   insert into public.k_meetings(title,employee_id,organizer_id,meeting_type,scheduled_for,duration_minutes)
-  values('Итоги первого месяца Олега',hr_id,head_id,'personal',
+  values('Итоги первого месяца Олега',hr_id,head_id,'first_month',
     ((current_date+30)+time '11:00') at time zone 'Europe/Moscow',60)
   returning id into meeting_id;
   insert into public.k_meeting_participants(meeting_id,profile_id,participation_role,response_status)

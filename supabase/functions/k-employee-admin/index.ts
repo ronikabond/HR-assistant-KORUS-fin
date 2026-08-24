@@ -343,8 +343,17 @@ Deno.serve(async (req) => {
       if (!actor.is_head_hr && (employee.is_hr || employee.is_head_hr)) {
         return reply({ error:'Назначать HR и администратора может только главный администратор' }, 403)
       }
-      if (!actor.is_head_hr && employee.hr_id !== actor.id) {
-        return reply({ error:'HR может создавать только своих сотрудников' }, 403)
+      if (employee.hr_id) {
+        const { data: selectedHr } = await admin.from('k_profiles').select('is_hr,is_active').eq('id', employee.hr_id).single()
+        if (!selectedHr?.is_hr || !selectedHr.is_active) {
+          return reply({ error:'Назначенный HR должен быть активным HR' }, 400)
+        }
+      }
+      if (employee.manager_id) {
+        const { data: selectedManager } = await admin.from('k_profiles').select('is_active').eq('id', employee.manager_id).single()
+        if (!selectedManager?.is_active) {
+          return reply({ error:'Руководитель должен быть активным сотрудником' }, 400)
+        }
       }
       const { data, error } = await admin.auth.admin.createUser({
         email:normalizeEmail(employee.login), password:employee.password, email_confirm:true,

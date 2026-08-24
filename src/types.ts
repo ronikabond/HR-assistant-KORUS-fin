@@ -26,6 +26,10 @@ export interface EmployeeDirectoryEntry {
   is_active?: boolean
 }
 
+export interface EmployeeAssignmentEntry extends EmployeeDirectoryEntry {
+  is_hr: boolean
+}
+
 export type IprStatus = 'pending' | 'approved' | 'rejected'
 export interface IprTask {
   id: number
