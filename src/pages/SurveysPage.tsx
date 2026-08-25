@@ -66,7 +66,7 @@ export function SurveysPage({me,profiles,templates,runs,assignments,answers,sche
       </div>
 
       <section className="survey-type-workspace" aria-label={`${kindLabel(kind)} · ${mode==='create'?'создание':'шаблоны'}`}>
-        <div className="survey-type-workspace-head"><div><span className="eyebrow">{kindLabel(kind)}</span><h2>{mode==='create'?'Создать новый опрос':'Шаблоны опросов'}</h2><p>{kind==='self'?'Вопросы для самооценки и рефлексии сотрудника.':'Вопросы для обратной связи от коллег и руководителя.'}</p></div><Badge tone={kind==='self'?'blue':'purple'}>{mode==='create'?'Новый':`${visibleTemplates.length} шаблонов`}</Badge></div>
+        <div className="survey-type-workspace-head"><div><span className="eyebrow">{kindLabel(kind)}</span><h2>{mode==='create'?'Создать новый опрос':'Шаблоны опросов'}</h2><p>{kind==='self'?'Вопросы для самооценки и рефлексии сотрудника.':'Вопросы для обратной связи от коллег и руководителя.'}</p></div><Badge tone={kind==='self'?'blue':'purple'}>{mode==='create'?'Новый':`Шаблонов: ${visibleTemplates.length}`}</Badge></div>
         {mode==='create'?<NewSurveyBuilder key={`${kind}-${builderVersion}`} kind={kind} onSave={async(template)=>{await onCreateTemplate(template);setBuilderVersion((version)=>version+1);setMode('templates')}} onSend={setOneTimeDraft}/>:<TemplateLibrary kind={kind} templates={visibleTemplates} onView={(template)=>setTemplateDialog({template,editing:false})} onEdit={(template)=>setTemplateDialog({template,editing:true})} onSend={setSending} onDelete={onDeleteTemplate}/>}
       </section>
 
