@@ -119,16 +119,22 @@ export function ChatsPage({me,profiles,chatDirectory,chats,messages,onCreate,onS
 function CreateChat({profiles,onClose,onCreate}:{profiles:EmployeeDirectoryEntry[];onClose:()=>void;onCreate:(title:string,ids:string[])=>Promise<void>}){
   const[title,setTitle]=useState('')
   const[selected,setSelected]=useState<string[]>([])
+  const[creating,setCreating]=useState(false)
+  const submit=async()=>{
+    if(!selected.length||creating)return
+    setCreating(true)
+    try{await onCreate(title||profiles.filter((profile)=>selected.includes(profile.id)).map((profile)=>profile.full_name).join(', '),selected)}finally{setCreating(false)}
+  }
   return <Modal className="chat-create-modal" title="Новый чат" subtitle="Можно выбрать одного или нескольких сотрудников" onClose={onClose} wide>
     <form className="form-stack" onSubmit={(event)=>{
       event.preventDefault()
-      if(selected.length)void onCreate(title||profiles.filter((profile)=>selected.includes(profile.id)).map((profile)=>profile.full_name).join(', '),selected)
+      void submit()
     }}>
-      <label>Название<input value={title} onChange={(event)=>setTitle(event.target.value)} placeholder="Например, Команда проекта"/></label>
-      <fieldset><legend>Участники</legend><ProfilePicker profiles={profiles} selectedIds={selected} onChange={setSelected} multiple/></fieldset>
+      <label>Название<input value={title} onChange={(event)=>setTitle(event.target.value)} placeholder="Например, Команда проекта" disabled={creating}/></label>
+      <fieldset disabled={creating}><legend>Участники</legend><ProfilePicker profiles={profiles} selectedIds={selected} onChange={setSelected} multiple/></fieldset>
       <div className="modal-actions">
-        <button type="button" className="button secondary" onClick={onClose}>Отмена</button>
-        <button className="button primary" disabled={!selected.length}>Создать чат</button>
+        <button type="button" className="button secondary" onClick={onClose} disabled={creating}>Отмена</button>
+        <button className="button primary" disabled={!selected.length||creating}>{creating?'Создаём…':'Создать чат'}</button>
       </div>
     </form>
   </Modal>
