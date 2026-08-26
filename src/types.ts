@@ -94,6 +94,7 @@ export interface ChatMessage {
 export interface Notification {
   id: number
   recipient_id: Id
+  meeting_id?: number | null
   kind: string
   title: string
   body: string

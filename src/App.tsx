@@ -118,6 +118,10 @@ const meetingInviteLabel=(meeting:Meeting)=>{
   return `${meeting.title} · ${value('day')}.${value('month')}.${value('year')} ${value('hour')}:${value('minute')}`
 }
 const meetingInviteEnd=(item:api.WorkspaceData['notifications'][number],meetings:Meeting[])=>{
+  if(item.meeting_id!=null){
+    const linked=meetings.find((meeting)=>meeting.id===item.meeting_id)
+    return linked?new Date(linked.scheduled_for).getTime()+linked.duration_minutes*60000:null
+  }
   if(item.kind!=='meeting_invite')return null
   const matching=meetings.find((meeting)=>item.body===meetingInviteLabel(meeting))
   if(matching)return new Date(matching.scheduled_for).getTime()+matching.duration_minutes*60000
