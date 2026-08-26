@@ -1037,3 +1037,18 @@ input[type="checkbox"]:disabled{opacity:.5;cursor:not-allowed}
   .survey-builder-actions{flex-direction:column-reverse}
   .survey-builder-actions .button{width:100%}
 }
+
+/* Keep the unread chat counter visible above its icon while the desktop sidebar is collapsed. */
+@media(min-width:961px){
+  .sidebar:not(:hover) nav button[data-view="chats"] i{
+    position:absolute;
+    top:3px;
+    right:3px;
+    width:auto;
+    min-width:18px;
+    margin-left:0;
+    padding:0 5px;
+    border-radius:999px;
+    line-height:18px;
+  }
+}
