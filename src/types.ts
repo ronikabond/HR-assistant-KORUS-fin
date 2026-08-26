@@ -18,6 +18,18 @@ export interface Profile {
   is_active?: boolean
 }
 
+export interface EmployeeDirectoryEntry {
+  id: Id
+  full_name: string
+  job_title: string
+  department?: string
+  is_active?: boolean
+}
+
+export interface EmployeeAssignmentEntry extends EmployeeDirectoryEntry {
+  is_hr: boolean
+}
+
 export type IprStatus = 'pending' | 'approved' | 'rejected'
 export interface IprTask {
   id: number
@@ -67,6 +79,7 @@ export interface Chat {
   is_group: boolean
   created_at: string
   participant_ids?: Id[]
+  participants?: Array<{ id: Id; full_name: string }>
   last_read_at?: Record<Id, string | null>
 }
 
@@ -81,6 +94,7 @@ export interface ChatMessage {
 export interface Notification {
   id: number
   recipient_id: Id
+  meeting_id?: number | null
   kind: string
   title: string
   body: string

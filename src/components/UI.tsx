@@ -4,7 +4,7 @@ import { X } from 'lucide-react'
 import type { Profile } from '../types'
 
 const initials = (name:string) => name.split(/\s+/).slice(0,2).map((part)=>part[0]).join('').toUpperCase()
-export function Avatar({profile,size='md'}:{profile:Profile;size?:'sm'|'md'|'lg'}) { return <span className={`avatar avatar-${size}`}>{initials(profile.full_name)}</span> }
+export function Avatar({profile,size='md'}:{profile:Pick<Profile,'full_name'>;size?:'sm'|'md'|'lg'}) { return <span className={`avatar avatar-${size}`}>{initials(profile.full_name)}</span> }
 export function Badge({children,tone='gray'}:{children:ReactNode;tone?:'gray'|'purple'|'green'|'red'|'orange'|'blue'}) { return <span className={`badge badge-${tone}`}>{children}</span> }
 export function Modal({title,subtitle,onClose,children,wide=false,className=''}:{title:string;subtitle?:string;onClose:()=>void;children:ReactNode;wide?:boolean;className?:string}) {
   return createPortal(<div className="modal-backdrop" onMouseDown={(event)=>event.target===event.currentTarget&&onClose()}>

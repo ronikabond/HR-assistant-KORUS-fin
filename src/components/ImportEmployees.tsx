@@ -58,6 +58,7 @@ function parseCsv(text: string, profiles: Profile[]): { rows: ParsedRow[]; missi
     else if (corporate_email && !EMAIL_RE.test(corporate_email)) error = 'Неверный формат почты'
     else if (phone && !PHONE_RE.test(phone)) error = 'Неверный формат телефона'
     else if (hrName && !hr) error = `HR «${hrName}» не найден среди сотрудников`
+    else if (hr && !hr.is_hr) error = `Сотрудник «${hrName}» не отмечен как HR`
     else if (managerName && !manager) error = `Руководитель «${managerName}» не найден среди сотрудников`
     return {
       full_name, login, password, job_title: get('должность'), department: get('департамент'),

@@ -2,7 +2,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.1'
 
 const cors = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-korus-bootstrap-token',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 }
 
@@ -22,6 +22,11 @@ type EmployeeInput = {
   manager_id?: string | null
 }
 
+type ResetPerson = EmployeeInput & {
+  key: 'head' | 'hr' | 'manager' | 'ilya' | 'darya'
+  role_label: 'Администратор' | 'HR' | 'Руководитель' | 'Сотрудник'
+}
+
 const ru: Record<string, string> = {
   а:'a',б:'b',в:'v',г:'g',д:'d',е:'e',ё:'e',ж:'zh',з:'z',и:'i',й:'i',
   к:'k',л:'l',м:'m',н:'n',о:'o',п:'p',р:'r',с:'s',т:'t',у:'u',ф:'f',
@@ -33,6 +38,111 @@ const normalizeEmail = (login: string) => {
   return `${local}@korpus-demo.ru`
 }
 
+const RESET_PEOPLE: ResetPerson[] = [
+  {
+    key:'head',login:'иван.иванович',password:'Ivan2026',full_name:'Иван Петров Иванович',
+    job_title:'Главный HR-администратор',department:'HR',direction:'Управление персоналом',
+    corporate_email:'ivan.petrov@korus.demo',phone:'+7 900 100-00-01',hired_on:'2024-02-05',
+    is_hr:true,is_head_hr:true,role_label:'Администратор',
+  },
+  {
+    key:'hr',login:'олег.семенович',password:'Oleg2026',full_name:'Олег Смирнов Семёнович',
+    job_title:'HR-партнёр',department:'HR',direction:'Развитие сотрудников',
+    corporate_email:'oleg.smirnov@korus.demo',phone:'+7 900 100-00-02',hired_on:'2025-10-06',
+    is_hr:true,role_label:'HR',
+  },
+  {
+    key:'manager',login:'елена.морозова',password:'Elena2026',full_name:'Елена Морозова',
+    job_title:'Руководитель группы',department:'Цифровые решения',direction:'Проектное управление',
+    corporate_email:'elena.morozova@korus.demo',phone:'+7 900 100-00-03',hired_on:'2024-04-15',
+    role_label:'Руководитель',
+  },
+  {
+    key:'ilya',login:'илья.воронов',password:'Ilya2026',full_name:'Илья Воронов',
+    job_title:'Бизнес-аналитик',department:'Цифровые решения',direction:'Бизнес-анализ',
+    corporate_email:'ilya.voronov@korus.demo',phone:'+7 900 100-00-04',hired_on:'2026-07-20',
+    role_label:'Сотрудник',
+  },
+  {
+    key:'darya',login:'дарья.кузнецова',password:'Darya2026',full_name:'Дарья Кузнецова',
+    job_title:'Младший аналитик',department:'Цифровые решения',direction:'Бизнес-анализ',
+    corporate_email:'darya.kuznetsova@korus.demo',phone:'+7 900 100-00-05',hired_on:'2026-08-10',
+    role_label:'Сотрудник',
+  },
+]
+
+// deno-lint-ignore no-explicit-any
+async function replaceDemoWorkspace(admin: any) {
+  const { data: oldUsersData, error: oldUsersError } = await admin.auth.admin.listUsers({ page:1, perPage:1000 })
+  if (oldUsersError) throw oldUsersError
+  const oldUserIds = oldUsersData.users.map((user: { id:string }) => user.id)
+  const created: Array<{ person:ResetPerson; id:string }> = []
+  const copiedDocuments: Array<{ id:number; oldPath:string; newPath:string }> = []
+  let workspaceReplaced = false
+
+  try {
+    for (const person of RESET_PEOPLE) {
+      const { data, error } = await admin.auth.admin.createUser({
+        email:normalizeEmail(person.login),password:person.password,email_confirm:true,
+        app_metadata:{app:'korpus-hr'},
+      })
+      if (error) throw error
+      created.push({ person,id:data.user.id })
+    }
+
+    const headId = created.find((item) => item.person.key==='head')!.id
+    const { data: documents, error: documentsError } = await admin.from('k_documents')
+      .select('id,storage_path,file_name,mime_type')
+    if (documentsError) throw documentsError
+    for (const document of documents ?? []) {
+      const { data:file,error:downloadError } = await admin.storage.from('k-documents').download(document.storage_path)
+      if (downloadError) throw downloadError
+      const safeName = document.file_name.replace(/[^a-zA-Zа-яА-Я0-9._-]/g,'_')
+      const newPath = `${headId}/${crypto.randomUUID()}-${safeName}`
+      const { error:uploadError } = await admin.storage.from('k-documents').upload(newPath,file,{
+        contentType:document.mime_type||'application/octet-stream',upsert:false,
+      })
+      if (uploadError) throw uploadError
+      copiedDocuments.push({ id:document.id,oldPath:document.storage_path,newPath })
+    }
+
+    const accounts = Object.fromEntries(created.map(({ person,id }) => [person.key,{...person,id}]))
+    const { data:summary,error:resetError } = await admin.rpc('k_replace_demo_workspace',{
+      p_accounts:accounts,
+      p_document_paths:copiedDocuments.map((document)=>({id:document.id,new_path:document.newPath})),
+    })
+    if (resetError) throw resetError
+    workspaceReplaced = true
+
+    const cleanupErrors: string[] = []
+    if (copiedDocuments.length) {
+      const { error:removeError } = await admin.storage.from('k-documents')
+        .remove(copiedDocuments.map((document)=>document.oldPath))
+      if (removeError) cleanupErrors.push(`Старые файлы: ${removeError.message}`)
+    }
+    for (const userId of oldUserIds) {
+      const { error } = await admin.auth.admin.deleteUser(userId)
+      if (error) cleanupErrors.push(`Auth ${userId}: ${error.message}`)
+    }
+
+    return {
+      summary,
+      preserved_documents:copiedDocuments.length,
+      deleted_auth_users:oldUserIds.length-cleanupErrors.filter((item)=>item.startsWith('Auth ')).length,
+      cleanup_errors:cleanupErrors,
+      accounts:RESET_PEOPLE.map(({login,password,full_name,role_label})=>({login,password,full_name,role_label})),
+    }
+  } catch (error) {
+    if (!workspaceReplaced) {
+      if (copiedDocuments.length) {
+        await admin.storage.from('k-documents').remove(copiedDocuments.map((document)=>document.newPath))
+      }
+      for (const account of created) await admin.auth.admin.deleteUser(account.id)
+    }
+    throw error
+  }
+}
+
 // Этапы адаптации по ТЗ: день 1 и неделя 1 — HR и сотрудник; 1,5 и 3 месяца — HR, руководитель и сотрудник.
 const ONBOARDING_SCHEDULE = [
   { title: 'Первый день', kind: 'first_day', offsetDays: 0, withManager: false },
@@ -41,34 +151,18 @@ const ONBOARDING_SCHEDULE = [
   { title: 'Итоги испытательного срока', kind: 'probation_end', offsetDays: 90, withManager: true },
 ] as const
 
-// Подбираем ближайший свободный получасовой слот для организатора/руководителя в этот день —
-// иначе при совпадении этапов у разных сотрудников (например, у одного HR) встречи накладываются
-// друг на друга на одно и то же время. Логика зеркалит private.k_free_meeting_slot в миграциях.
-// deno-lint-ignore no-explicit-any
-async function findFreeSlot(admin: any, day: Date, participantIds: (string | null)[]) {
-  const busyParticipants = participantIds.filter(Boolean) as string[]
-  for (let step = 0; step <= 12; step++) {
-    const candidate = new Date(day); candidate.setUTCMinutes(candidate.getUTCMinutes() + step * 30)
-    const { count } = await admin.from('k_meeting_participants').select('meeting_id, k_meetings!inner(scheduled_for)', { count: 'exact', head: true })
-      .in('profile_id', busyParticipants).eq('k_meetings.scheduled_for', candidate.toISOString())
-    if (!count) return candidate
-  }
-  const fallback = new Date(day); fallback.setUTCMinutes(fallback.getUTCMinutes() + 12 * 30); return fallback
-}
-
 type ParticipantRole = 'employee' | 'hr' | 'manager'
 
 // deno-lint-ignore no-explicit-any
 async function insertMeeting(admin: any, employeeId: string, organizerId: string, participants: Array<{ id: string | null; role: ParticipantRole }>, title: string, kind: string, date: Date) {
-  const slot = await findFreeSlot(admin, date, [organizerId, ...participants.map((p) => p.id)])
-  const { data: meeting, error } = await admin.from('k_meetings').insert({
-    title, employee_id: employeeId, organizer_id: organizerId, meeting_type: kind, scheduled_for: slot.toISOString(),
-  }).select('id').single()
+  const uniqueParticipants = [...new Map(participants.filter((p) => p.id).map((p) => [p.id, p])).values()]
+  const { data: meetingId, error } = await admin.rpc('k_create_system_meeting', {
+    p_title: title, p_employee_id: employeeId, p_organizer_id: organizerId,
+    p_meeting_type: kind, p_scheduled_for: date.toISOString(),
+    p_participants: uniqueParticipants, p_duration_minutes: 60,
+  })
   if (error) throw error
-  const { error: participantsError } = await admin.from('k_meeting_participants')
-    .insert(participants.filter((p) => p.id).map((p) => ({ meeting_id: meeting.id, profile_id: p.id, participation_role: p.role })))
-  if (participantsError) throw participantsError
-  return slot
+  return meetingId ? date : null
 }
 
 // Платформа иногда выполняет запрос дважды параллельно на холодном старте (гонка изолятов) —
@@ -89,7 +183,7 @@ async function createOnboardingMeetings(admin: any, employeeId: string, employee
     const participants: Array<{ id: string | null; role: ParticipantRole }> = [{ id: employeeId, role: 'employee' }, { id: hrId, role: 'hr' }]
     if (stage.withManager) participants.push({ id: managerId, role: 'manager' })
     const slot = await insertMeeting(admin, employeeId, hrId, participants, stage.title, stage.kind, date)
-    if (stage.kind === 'probation_end' && managerId) {
+    if (stage.kind === 'probation_end' && managerId && slot) {
       await insertMeeting(admin, employeeId, managerId, [{ id: managerId, role: 'manager' }], `Подготовить ИПР — ${employeeName}`, 'deadline', slot)
     }
   }
@@ -137,6 +231,11 @@ Deno.serve(async (req) => {
     }
 
     if (action === 'bootstrap') {
+      const expectedBootstrapToken = Deno.env.get('KORUS_BOOTSTRAP_TOKEN')
+      const suppliedBootstrapToken = req.headers.get('x-korus-bootstrap-token')
+      if (!expectedBootstrapToken || suppliedBootstrapToken !== expectedBootstrapToken) {
+        return reply({ error: 'Первичная настройка отключена или не авторизована' }, 403)
+      }
       const { count } = await admin.from('k_profiles').select('id', { count: 'exact', head: true })
       if ((count ?? 0) > 0) return reply({ error: 'Демонстрационные аккаунты уже созданы' }, 409)
 
@@ -233,9 +332,29 @@ Deno.serve(async (req) => {
     const { data: actor } = await admin.from('k_profiles').select('*').eq('id', authData.user.id).single()
     if (!actor?.is_hr) return reply({ error:'Доступно только HR' }, 403)
 
+    if (action === 'replace_demo') {
+      if (!actor.is_head_hr) return reply({ error:'Сброс доступен только главному администратору' }, 403)
+      return reply({ ok:true,...await replaceDemoWorkspace(admin) })
+    }
+
     if (action === 'create') {
       const employee = payload.employee as EmployeeInput
       if (!employee.login || !employee.password || !employee.full_name) return reply({ error:'Заполните логин, пароль и ФИО' }, 400)
+      if (!actor.is_head_hr && employee.is_head_hr) {
+        return reply({ error:'Назначать администратора может только главный администратор' }, 403)
+      }
+      if (employee.hr_id) {
+        const { data: selectedHr } = await admin.from('k_profiles').select('is_hr,is_active').eq('id', employee.hr_id).single()
+        if (!selectedHr?.is_hr || !selectedHr.is_active) {
+          return reply({ error:'Назначенный HR должен быть активным HR' }, 400)
+        }
+      }
+      if (employee.manager_id) {
+        const { data: selectedManager } = await admin.from('k_profiles').select('is_active').eq('id', employee.manager_id).single()
+        if (!selectedManager?.is_active) {
+          return reply({ error:'Руководитель должен быть активным сотрудником' }, 400)
+        }
+      }
       const { data, error } = await admin.auth.admin.createUser({
         email:normalizeEmail(employee.login), password:employee.password, email_confirm:true,
         app_metadata:{app:'korpus-hr'},
@@ -263,14 +382,11 @@ Deno.serve(async (req) => {
       }
       for (const partnerId of [...new Set([employee.hr_id,employee.manager_id].filter(Boolean) as string[])]) {
         const { data:partner } = await admin.from('k_profiles').select('full_name').eq('id',partnerId).single()
-        const { data:chat,error:chatError } = await admin.from('k_chats').insert({
-          title:partner?.full_name ?? 'Рабочий чат', created_by:data.user.id, is_group:false,
-        }).select('id').single()
+        const { error:chatError } = await admin.rpc('k_create_system_chat', {
+          p_title:partner?.full_name ?? 'Рабочий чат', p_creator_id:data.user.id,
+          p_participant_ids:[partnerId],
+        })
         if (chatError) throw chatError
-        const { error:membersError } = await admin.from('k_chat_participants').insert([
-          {chat_id:chat.id,profile_id:data.user.id},{chat_id:chat.id,profile_id:partnerId},
-        ])
-        if (membersError) throw membersError
       }
       return reply({ ok:true, id:data.user.id })
     }
