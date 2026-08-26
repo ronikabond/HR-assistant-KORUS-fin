@@ -1056,7 +1056,7 @@ input[type="checkbox"]:disabled{opacity:.5;cursor:not-allowed}
   }
 }
 
-/* Bring the IPR progress and action group slightly closer to the card center. */
+/* Lower the IPR progress and action group without changing its horizontal space. */
 @media(min-width:901px){
-  .ipr-card>.section-head .ipr-head-actions{margin-right:clamp(28px,4vw,64px)}
+  .ipr-card>.section-head .ipr-head-actions{margin-top:16px}
 }
