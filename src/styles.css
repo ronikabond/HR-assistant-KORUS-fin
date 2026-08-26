@@ -1038,6 +1038,9 @@ input[type="checkbox"]:disabled{opacity:.5;cursor:not-allowed}
   .survey-builder-actions .button{width:100%}
 }
 
+/* Make every unread notification clearly distinct in the light theme too. */
+.notification.unread{box-shadow:inset 3px 0 var(--purple)}
+
 /* Keep sidebar counters visible above their icons while the desktop sidebar is collapsed. */
 @media(min-width:961px){
   .sidebar:not(:hover) nav button:is([data-view="chats"],[data-view="surveys"]) i{
