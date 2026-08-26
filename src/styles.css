@@ -1038,9 +1038,9 @@ input[type="checkbox"]:disabled{opacity:.5;cursor:not-allowed}
   .survey-builder-actions .button{width:100%}
 }
 
-/* Keep the unread chat counter visible above its icon while the desktop sidebar is collapsed. */
+/* Keep sidebar counters visible above their icons while the desktop sidebar is collapsed. */
 @media(min-width:961px){
-  .sidebar:not(:hover) nav button[data-view="chats"] i{
+  .sidebar:not(:hover) nav button:is([data-view="chats"],[data-view="surveys"]) i{
     position:absolute;
     top:3px;
     right:3px;
