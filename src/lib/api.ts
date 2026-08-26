@@ -6,7 +6,7 @@ const client = () => {
   return supabase
 }
 const fail = (error: { message: string } | null) => { if (error) throw new Error(error.message) }
-const notify=async(recipientIds:string[],kind:string,title:string,body:string)=>{const ids=[...new Set(recipientIds)].filter(Boolean);if(!ids.length)return;const{error}=await client().from('k_notifications').insert(ids.map((recipient_id)=>({recipient_id,kind,title,body,dismissible:true})));fail(error)}
+const notify=async(recipientIds:string[],kind:string,title:string,body:string,meetingId?:number)=>{const ids=[...new Set(recipientIds)].filter(Boolean);if(!ids.length)return;const{error}=await client().from('k_notifications').insert(ids.map((recipient_id)=>({recipient_id,kind,title,body,dismissible:true,meeting_id:meetingId??null})));fail(error)}
 
 export interface WorkspaceData {
   profiles: Profile[]
@@ -116,7 +116,7 @@ export async function decideReschedule(request:RescheduleRequest, status:'approv
   const {error}=await client().rpc('k_decide_reschedule',{p_request_id:request.id,p_status:status});fail(error)
 }
 
-export async function respondToMeeting(meetingId:number,profileId:string,status:'accepted'|'declined') { const db=client();const {error}=await db.from('k_meeting_participants').update({response_status:status}).eq('meeting_id',meetingId).eq('profile_id',profileId);fail(error);const{data:meeting}=await db.from('k_meetings').select('organizer_id,title').eq('id',meetingId).single();const{data:person}=await db.from('k_profiles').select('full_name').eq('id',profileId).single();if(meeting?.organizer_id!==profileId)await notify([meeting!.organizer_id],'meeting_response',status==='accepted'?'Встреча подтверждена':'Участник отказался',`${person?.full_name??'Участник'}: ${meeting!.title}`) }
+export async function respondToMeeting(meetingId:number,profileId:string,status:'accepted'|'declined') { const db=client();const {error}=await db.from('k_meeting_participants').update({response_status:status}).eq('meeting_id',meetingId).eq('profile_id',profileId);fail(error);const{data:meeting}=await db.from('k_meetings').select('organizer_id,title').eq('id',meetingId).single();const{data:person}=await db.from('k_profiles').select('full_name').eq('id',profileId).single();if(meeting?.organizer_id!==profileId)await notify([meeting!.organizer_id],'meeting_response',status==='accepted'?'Встреча подтверждена':'Участник отказался',`${person?.full_name??'Участник'}: ${meeting!.title}`,meetingId) }
 
 export async function createChat(title:string,_creatorId:string,participantIds:string[]) { const{data,error}=await client().rpc('k_create_chat',{p_title:title,p_participant_ids:participantIds});fail(error);return data as number }
 export async function sendMessage(chatId:number, _authorId:string, body:string) { const {error}=await client().rpc('k_send_chat_message',{p_chat_id:chatId,p_body:body});fail(error) }

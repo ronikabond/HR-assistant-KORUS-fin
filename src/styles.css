@@ -1041,6 +1041,8 @@ input[type="checkbox"]:disabled{opacity:.5;cursor:not-allowed}
 /* Make every unread notification clearly distinct in the light theme too. */
 .notification.unread{box-shadow:inset 3px 0 var(--purple)}
 
+.meeting-overflow{padding:3px 6px;color:var(--muted);font-size:10px;font-weight:800}
+
 /* Keep sidebar counters visible above their icons while the desktop sidebar is collapsed. */
 @media(min-width:961px){
   .sidebar:not(:hover) nav button:is([data-view="chats"],[data-view="surveys"]) i{
