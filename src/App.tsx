@@ -87,7 +87,7 @@ export default function App(){
   return <div className="app-backdrop"><div className="app-shell">
     <aside className={`sidebar ${mobileMenuOpen?'mobile-open':''}`} aria-label="Основная навигация">
       <button type="button" className="brand" onClick={()=>{setView('home');setSelectedEmployee(null);setMobileMenuOpen(false)}} aria-label="Открыть главную страницу" title="Главная"><span><Sparkles/></span><div><b>КОРУС</b><small>Пространство развития</small></div></button>
-      <button className="sidebar-menu" aria-label="Меню"><Menu/><span>Меню</span></button>
+      <div className="sidebar-menu"><Menu aria-hidden="true"/><span>Меню</span></div>
       <nav>{nav.filter((item)=>item.show).map((item)=><button key={item.id} data-view={item.id} className={view===item.id&&!selectedEmployee?'active':''} onClick={()=>{setView(item.id);setSelectedEmployee(null);setMobileMenuOpen(false)}} title={item.label}><item.icon/><span>{item.label}</span>{Boolean(item.count)&&<i>{item.count}</i>}</button>)}</nav>
       <button className="sidebar-logout" onClick={()=>{setMobileMenuOpen(false);void logout()}} title="Выйти из аккаунта" aria-label="Выйти из аккаунта"><LogOut/><span>Выйти</span></button>
     </aside>
