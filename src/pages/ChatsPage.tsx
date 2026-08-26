@@ -1,5 +1,7 @@
 import { LogOut, MessageCircle, Plus, Send, UserMinus, UsersRound } from 'lucide-react'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
+import { isSameDay, format } from 'date-fns'
+import { ru } from 'date-fns/locale'
 import type { Chat, ChatMessage, EmployeeDirectoryEntry, Profile } from '../types'
 import { Avatar, EmptyState, Modal } from '../components/UI'
 import { ProfilePicker } from '../components/ProfilePicker'
@@ -33,6 +35,14 @@ const participantCountLabel=(count:number)=>{
   return `${count} ${word}`
 }
 
+function dayLabel(date: Date): string {
+  const now = new Date()
+  if (isSameDay(date, now)) return 'Сегодня'
+  const yesterday = new Date(now); yesterday.setDate(yesterday.getDate() - 1)
+  if (isSameDay(date, yesterday)) return 'Вчера'
+  return format(date, date.getFullYear() === now.getFullYear() ? 'd MMMM' : 'd MMMM yyyy', { locale: ru })
+}
+
 export function ChatsPage({me,profiles,chatDirectory,chats,messages,onCreate,onSend,onRead,onLeave,onRemove}:{me:Profile;profiles:Profile[];chatDirectory:EmployeeDirectoryEntry[];chats:Chat[];messages:ChatMessage[];onCreate:(title:string,ids:string[])=>Promise<void>;onSend:(chatId:number,body:string)=>Promise<void>;onRead:(chatId:number)=>Promise<void>;onLeave:(chat:Chat)=>Promise<void>;onRemove:(chat:Chat,id:string)=>Promise<void>}){
   const[selectedId,setSelectedId]=useState(chats[0]?.id??null)
   const[creating,setCreating]=useState(false)
@@ -43,13 +53,14 @@ export function ChatsPage({me,profiles,chatDirectory,chats,messages,onCreate,onS
   const messagesEndRef=useRef<HTMLDivElement>(null)
 
   useEffect(()=>{messagesEndRef.current?.scrollIntoView({block:'end'})},[rows,selected?.id])
+  useEffect(()=>{if(selected)void onRead(selected.id)},[selected?.id])
 
   const unread=(chat:Chat)=>messages.filter((message)=>
     message.chat_id===chat.id&&
     message.author_id!==me.id&&
     (!chat.last_read_at?.[me.id]||message.created_at>chat.last_read_at[me.id]!)
   ).length
-  const choose=(chat:Chat)=>{setSelectedId(chat.id);void onRead(chat.id)}
+  const choose=(chat:Chat)=>setSelectedId(chat.id)
 
   return <>
     <div className="page-title compact">
@@ -78,13 +89,18 @@ export function ChatsPage({me,profiles,chatDirectory,chats,messages,onCreate,onS
             <button className="icon-button danger" title="Выйти из чата" onClick={()=>void onLeave(selected)}><LogOut/></button>
           </header>
           <div className="messages">
-            {rows.map((message)=>{
+            {rows.map((message,i)=>{
               const author=chatPeople(selected,profiles).find((person)=>person.id===message.author_id)
-              return <article className={`message ${message.author_id===me.id?'mine':''}`} key={message.id}>
-                <small>{message.author_id===me.id?'Вы':author?.full_name??'Сотрудник'}</small>
-                <p>{message.body}</p>
-                <time>{new Date(message.created_at).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'})}</time>
-              </article>
+              const date=new Date(message.created_at)
+              const showDivider=i===0||!isSameDay(new Date(rows[i-1].created_at),date)
+              return <Fragment key={message.id}>
+                {showDivider&&<div className="chat-date-divider"><span>{dayLabel(date)}</span></div>}
+                <article className={`message ${message.author_id===me.id?'mine':''}`}>
+                  <small>{message.author_id===me.id?'Вы':author?.full_name??'Сотрудник'}</small>
+                  <p>{message.body}</p>
+                  <time>{date.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'})}</time>
+                </article>
+              </Fragment>
             })}
             {!rows.length&&<EmptyState icon={<MessageCircle/>} title="Начните разговор" text="Первое сообщение появится здесь."/>}
             <div ref={messagesEndRef}/>
